@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-surface-950 text-silver-200 font-body;
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba(255,255,255,0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(255,255,255,0.02) 0%, transparent 50%);
+  background-attachment: fixed;
+}
+
+h1, h2, h3, h4 {
+  @apply font-display tracking-wide;
+}
+
+/* Card surface */
+.card {
+  @apply bg-surface-800 border border-surface-600 rounded-xl;
+}
+
+/* Hairline divider */
+.hairline {
+  @apply border-surface-600;
+}
+
+/* Stat number cells */
+.stat-mono {
+  @apply font-mono tabular-nums;
+}
+
+/* Badge pill */
+.pin-badge {
+  @apply inline-flex items-center justify-center rounded-full border border-surface-600 text-silver-200 bg-surface-800;
+}
+
+/* Text selection */
+::selection {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #111111;
+}
+::-webkit-scrollbar-thumb {
+  background: #333333;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #525252;
+}
+
+/* Form inputs — shared base style */
+.input-field {
+  @apply w-full bg-surface-900 border border-surface-600 rounded-lg px-3 py-2 text-silver-200 placeholder-silver-600
+         focus:outline-none focus:ring-1 focus:ring-silver-400 focus:border-silver-400 transition-colors;
+}
+
+/* Primary button */
+.btn-primary {
+  @apply px-5 py-2 bg-white text-surface-950 rounded-lg font-display tracking-widest text-sm
+         hover:bg-silver-200 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed;
+}
+
+/* Secondary button */
+.btn-secondary {
+  @apply px-5 py-2 border border-surface-600 text-silver-300 rounded-lg font-display tracking-widest text-sm
+         hover:border-silver-400 hover:text-white active:scale-[0.98] transition-all disabled:opacity-40;
+}
+
+/* Danger button */
+.btn-danger {
+  @apply px-5 py-2 bg-surface-700 border border-surface-500 text-silver-200 rounded-lg font-display tracking-widest text-sm
+         hover:bg-surface-600 hover:border-silver-500 hover:text-white active:scale-[0.98] transition-all disabled:opacity-40;
+}
+
+/* Glow shimmer on card hover */
+.card-hover {
+  @apply card transition-all duration-200 hover:border-silver-500 hover:shadow-[0_0_20px_rgba(255,255,255,0.05)];
+}
+
+/* Respect reduced-motion preferences site-wide. */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
