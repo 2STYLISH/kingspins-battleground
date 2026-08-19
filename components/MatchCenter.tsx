@@ -85,7 +85,7 @@ export default function MatchCenter({ games = [] }: { games: any[] }) {
         <div className="flex-1 p-5 flex flex-col justify-between min-h-[220px] bg-transparent relative border-b lg:border-b-0 lg:border-r border-surface-800">
           <div className="flex justify-between items-start mb-6">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] text-gold font-mono uppercase tracking-widest">⚡ FINAL</span>
+              <span className="text-[10px] text-gold font-mono uppercase tracking-widest">FINAL</span>
             </div>
             <div className="text-right">
               <span className="text-[9px] text-silver-500 font-mono uppercase tracking-widest block">{fTournament}</span>
