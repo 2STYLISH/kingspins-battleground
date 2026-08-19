@@ -207,7 +207,7 @@ export default function Navbar() {
                     onClick={() => setProfileOpen(false)}
                     className="block w-full text-left px-4 py-3 text-sm text-silver-300 hover:text-white hover:bg-surface-700 transition-colors"
                   >
-                    🔑 Login
+                    Login
                   </Link>
                 )}
               </div>
