@@ -59,8 +59,8 @@ export default async function SchedulePage({ searchParams }: { searchParams: { f
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       <div>
-        <p className="text-[10px] text-gold font-mono uppercase tracking-[0.3em] mb-2">BATTLEGROUND SCHEDULE</p>
-        <h1 className="text-5xl text-white font-display tracking-widest uppercase">UPCOMING GAMES</h1>
+        <p className="text-[10px] text-[#b8860b] font-mono uppercase tracking-[0.3em] mb-2">BATTLEGROUND SCHEDULE</p>
+        <h1 className="text-5xl text-white font-display tracking-widest uppercase drop-shadow-[0_0_15px_rgba(229,0,0,0.3)]">UPCOMING GAMES</h1>
       </div>
 
       <div className="flex flex-wrap gap-2 mb-8">
@@ -70,8 +70,8 @@ export default async function SchedulePage({ searchParams }: { searchParams: { f
             href={`/schedule?filter=${f.key}`}
             className={`px-4 py-2 rounded text-[10px] font-mono uppercase tracking-widest border transition-colors ${
               filter === f.key 
-                ? 'border-gold bg-gold/10 text-gold' 
-                : 'border-surface-700 bg-surface-900 text-silver-400 hover:text-white hover:border-surface-500'
+                ? 'border-[#b8860b] bg-[#b8860b]/10 text-[#b8860b]' 
+                : 'border-surface-700 bg-[#111] text-silver-400 hover:text-red-600 hover:border-red-600'
             }`}
           >
             {f.label}
@@ -80,7 +80,7 @@ export default async function SchedulePage({ searchParams }: { searchParams: { f
       </div>
 
       {(games ?? []).length === 0 && (
-        <div className="border border-surface-700 bg-surface-950 rounded p-8 text-center">
+        <div className="border border-surface-700 bg-[#080808] rounded p-8 text-center">
           <p className="text-silver-500 font-mono text-sm uppercase">No games scheduled for this filter.</p>
         </div>
       )}

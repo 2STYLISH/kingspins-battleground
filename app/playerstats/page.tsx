@@ -20,7 +20,7 @@ function getTierBadge(tier: number | null) {
   };
   const color = colors[tier] || colors[6];
   return (
-    <span className={`inline-block ml-2 px-1.5 py-0.5 rounded text-[9px] font-mono uppercase tracking-widest font-bold ${color}`}>
+    <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-mono uppercase tracking-widest font-bold items-center justify-center ${color}`}>
       T{tier}
     </span>
   );
@@ -29,19 +29,19 @@ function getTierBadge(tier: number | null) {
 function TabHeader({ activeTab, activeTournamentId }: { activeTab: string; activeTournamentId: string }) {
   return (
     <div>
-      <p className="text-[10px] text-gold font-mono uppercase tracking-[0.3em] mb-2">BATTLEGROUND LEADERBOARDS</p>
-      <h1 className="text-5xl text-white font-display tracking-widest uppercase mb-2">PLAYER STATS</h1>
+      <p className="text-[10px] text-[#b8860b] font-mono uppercase tracking-[0.3em] mb-2">BATTLEGROUND LEADERBOARDS</p>
+      <h1 className="text-5xl text-white font-display tracking-widest uppercase mb-2 drop-shadow-[0_0_15px_rgba(229,0,0,0.3)]">PLAYER STATS</h1>
       <div className="flex gap-2 border-b border-surface-700 pb-px">
         <Link
           href={`/playerstats?tab=tournaments${activeTournamentId ? `&t=${activeTournamentId}` : ''}`}
-          className={`px-4 py-2 text-xs font-mono uppercase tracking-widest border-b-2 transition-colors ${activeTab === 'tournaments' ? 'border-gold text-gold' : 'border-transparent text-silver-500 hover:text-silver-300'
+          className={`px-4 py-2 text-xs font-mono uppercase tracking-widest border-b-2 transition-colors ${activeTab === 'tournaments' ? 'border-[#b8860b] text-[#b8860b]' : 'border-transparent text-silver-500 hover:text-red-600'
             }`}
         >
           Tournaments
         </Link>
         <Link
           href={`/playerstats?tab=all`}
-          className={`px-4 py-2 text-xs font-mono uppercase tracking-widest border-b-2 transition-colors ${activeTab === 'all' ? 'border-gold text-gold' : 'border-transparent text-silver-500 hover:text-silver-300'
+          className={`px-4 py-2 text-xs font-mono uppercase tracking-widest border-b-2 transition-colors ${activeTab === 'all' ? 'border-[#b8860b] text-[#b8860b]' : 'border-transparent text-silver-500 hover:text-red-600'
             }`}
         >
           Overall Stats
@@ -109,11 +109,11 @@ export default async function StatsPage({ searchParams }: { searchParams: { tab?
       <div className="space-y-8">
         <TabHeader activeTab="all" activeTournamentId={activeTournamentId} />
         <section>
-          <div className="bg-surface-950 border border-surface-700 rounded overflow-hidden shadow-lg">
+          <div className="bg-[#080808]/90 backdrop-blur-sm border border-surface-700 rounded overflow-hidden shadow-lg">
             <div className="overflow-x-auto">
               <table className="w-full text-xs font-mono">
                 <thead>
-                  <tr className="bg-surface-900 border-b border-surface-700 text-silver-500 uppercase tracking-widest text-[10px]">
+                  <tr className="bg-[#111] border-b border-surface-700 text-red-600 uppercase tracking-widest text-[10px]">
                     <th className="text-left px-5 py-4 w-8">#</th>
                     <th className="text-left px-4 py-3 font-mono">Player</th>
                     <th className="text-left px-4 py-3 font-mono">Team</th>
@@ -134,12 +134,14 @@ export default async function StatsPage({ searchParams }: { searchParams: { tab?
                   )}
                   {rows.map(({ player, avg, teamName }, idx) => (
                     <tr key={player.id} className="border-b border-surface-800 last:border-0 hover:bg-surface-800 transition-colors group">
-                      <td className="px-5 py-4 text-silver-600 text-[10px]">{idx + 1}</td>
+                      <td className="px-5 py-4 text-[#b8860b] text-[10px] font-bold">{idx + 1}</td>
                       <td className="px-5 py-4">
-                        <Link href={`/${player.slug || player.gamertag.toLowerCase()}`} className="text-white font-display tracking-widest uppercase group-hover:text-gold transition-colors">
-                          {player.gamertag}
-                        </Link>
-                        {getTierBadge(player.tier)}
+                        <div className="flex items-center gap-2">
+                          <Link href={`/${player.slug || player.gamertag.toLowerCase()}`} className="text-white font-display tracking-widest uppercase group-hover:text-red-600 transition-colors">
+                            {player.gamertag}
+                          </Link>
+                          {getTierBadge(player.tier)}
+                        </div>
                       </td>
                       <td className="px-5 py-4 text-silver-500 font-mono text-[10px] uppercase tracking-widest">{teamName}</td>
                       <td className="px-3 py-3 text-right text-silver-400">{avg.gamesPlayed}</td>
@@ -172,9 +174,9 @@ export default async function StatsPage({ searchParams }: { searchParams: { tab?
           {(tournaments ?? []).length === 0 && <p className="text-silver-500 font-mono text-sm uppercase">No tournaments yet.</p>}
           {(tournaments ?? []).map(t => (
             <Link key={t.id} href={`/playerstats?tab=tournaments&t=${t.id}`}
-              className="block p-6 border border-surface-700 bg-surface-950 hover:bg-surface-900 transition-colors rounded group">
+              className="block p-6 border border-surface-700 bg-[#080808]/90 backdrop-blur-sm hover:border-red-600 transition-colors rounded group shadow-lg">
               <div className="flex justify-between items-start mb-4">
-                <p className="text-lg font-display text-white tracking-widest uppercase group-hover:text-gold transition-colors truncate">{t.name}</p>
+                <p className="text-lg font-display text-white tracking-widest uppercase group-hover:text-red-600 transition-colors truncate">{t.name}</p>
               </div>
               <div className="flex items-center justify-between mt-4">
                 <p className="text-[9px] font-mono text-silver-500 uppercase tracking-widest">{t.format.replace(/_/g, ' ')}</p>
@@ -246,8 +248,8 @@ export default async function StatsPage({ searchParams }: { searchParams: { tab?
         {(tournaments ?? []).map(t => (
           <Link key={t.id} href={`/playerstats?tab=tournaments&t=${t.id}`}
             className={`px-3 py-1.5 rounded-md text-xs font-mono uppercase border transition-colors ${t.id === activeTournamentId
-              ? 'border-gold text-gold bg-gold/10'
-              : 'border-surface-600 text-mute hover:text-bone hover:border-surface-400'
+              ? 'border-[#b8860b] text-[#b8860b] bg-[#b8860b]/10'
+              : 'border-surface-600 text-silver-500 hover:text-red-600 hover:border-red-600'
               }`}>{t.name}</Link>
         ))}
       </div>
@@ -271,12 +273,12 @@ export default async function StatsPage({ searchParams }: { searchParams: { tab?
       <div className="space-y-10">
         {[...teamMap.entries()].map(([teamId, { teamName, players: teamPlayers }]) => (
           <section key={teamId}>
-            <h3 className="text-lg text-white font-display tracking-widest mb-3">{teamName}</h3>
-            <div className="bg-surface-950 border border-surface-700 rounded overflow-hidden shadow-lg">
+            <h3 className="text-lg text-[#b8860b] font-display tracking-widest mb-3">{teamName}</h3>
+            <div className="bg-[#080808]/90 backdrop-blur-sm border border-surface-700 rounded overflow-hidden shadow-lg">
               <div className="overflow-x-auto">
                 <table className="w-full text-xs font-mono">
                   <thead>
-                    <tr className="bg-surface-900 border-b border-surface-700 text-silver-500 uppercase tracking-widest text-[10px]">
+                    <tr className="bg-[#111] border-b border-surface-700 text-red-600 uppercase tracking-widest text-[10px]">
                       <th className="text-left px-5 py-4">Player</th>
                       <th className="px-3 py-4 text-right">GP</th>
                       <th className="px-3 py-4 text-right">PPG</th>
@@ -296,11 +298,13 @@ export default async function StatsPage({ searchParams }: { searchParams: { tab?
                     {teamPlayers.map(({ player, avg }) => (
                       <tr key={player.id} className="border-b border-surface-800 last:border-0 hover:bg-surface-800 transition-colors group">
                         <td className="px-5 py-4">
-                          <Link href={`/${player.slug || player.gamertag.toLowerCase()}`} className="text-white font-display tracking-widest uppercase group-hover:text-gold transition-colors">
-                            {player.gamertag}
-                          </Link>
-                          {getTierBadge(player.tier)}
-                          {player.position && <span className="ml-2 text-[10px] text-silver-600 uppercase font-mono tracking-widest">{player.position}</span>}
+                          <div className="flex items-center gap-2">
+                            <Link href={`/${player.slug || player.gamertag.toLowerCase()}`} className="text-white font-display tracking-widest uppercase group-hover:text-red-600 transition-colors">
+                              {player.gamertag}
+                            </Link>
+                            {getTierBadge(player.tier)}
+                            {player.position && <span className="text-[10px] text-silver-600 uppercase font-mono tracking-widest">{player.position}</span>}
+                          </div>
                         </td>
                         {avg ? (
                           <>

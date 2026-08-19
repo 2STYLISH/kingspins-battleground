@@ -17,7 +17,7 @@ export default async function TournamentsPage() {
       case 'SEEDING':
         return <span className="text-[9px] bg-surface-700 text-silver-300 px-2 py-0.5 rounded font-mono uppercase tracking-widest font-bold">Draft / Seeding</span>;
       case 'IN_PROGRESS':
-        return <span className="text-[9px] bg-gold text-black px-2 py-0.5 rounded font-mono uppercase tracking-widest font-bold">Live</span>;
+        return <span className="text-[9px] bg-red-600 text-white px-2 py-0.5 rounded font-mono uppercase tracking-widest font-bold">Live</span>;
       case 'COMPLETED':
         return <span className="text-[9px] bg-surface-800 text-silver-400 border border-surface-600 px-2 py-0.5 rounded font-mono uppercase tracking-widest">Completed</span>;
       case 'CANCELLED':
@@ -30,8 +30,8 @@ export default async function TournamentsPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-12">
       <div>
-        <p className="text-[10px] text-gold font-mono uppercase tracking-[0.3em] mb-2">PRO-AM LEAGUES</p>
-        <h1 className="text-5xl text-white font-display tracking-widest uppercase">TOURNAMENTS</h1>
+        <p className="text-[10px] text-[#b8860b] font-mono uppercase tracking-[0.3em] mb-2">PRO-AM LEAGUES</p>
+        <h1 className="text-5xl text-white font-display tracking-widest uppercase drop-shadow-[0_0_15px_rgba(229,0,0,0.3)]">TOURNAMENTS</h1>
       </div>
 
       {/* Active Leagues */}
@@ -44,10 +44,10 @@ export default async function TournamentsPage() {
         <div className="grid gap-6 md:grid-cols-2">
           {activeLeagues.length === 0 && <p className="text-silver-500 font-mono text-sm uppercase">No active leagues right now.</p>}
           {activeLeagues.map((t) => (
-            <Link key={t.id} href={`/tournaments/${t.id}`} className="block border border-surface-700 bg-surface-950 hover:bg-surface-900 transition-colors rounded overflow-hidden group">
+            <Link key={t.id} href={`/tournaments/${t.id}`} className="block border border-surface-700 bg-[#080808]/90 backdrop-blur-sm shadow-lg hover:border-red-600 transition-colors rounded overflow-hidden group">
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
-                  <p className="text-2xl font-display text-white uppercase tracking-widest group-hover:text-gold transition-colors">{t.name}</p>
+                  <p className="text-2xl font-display text-white uppercase tracking-widest group-hover:text-red-600 transition-colors">{t.name}</p>
                   {getStatusBadge(t.status)}
                 </div>
                 <div className="flex flex-wrap gap-4 mt-6 pt-4 border-t border-surface-700">
@@ -78,9 +78,9 @@ export default async function TournamentsPage() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {archivedLeagues.length === 0 && <p className="text-silver-500 font-mono text-sm uppercase">No archived leagues.</p>}
           {archivedLeagues.map((t) => (
-            <Link key={t.id} href={`/tournaments/${t.id}`} className="flex justify-between items-center p-3 border border-surface-700 bg-surface-950 hover:bg-surface-800 transition-colors rounded group">
+            <Link key={t.id} href={`/tournaments/${t.id}`} className="flex justify-between items-center p-3 border border-surface-700 bg-[#111] hover:border-surface-500 transition-colors rounded group">
               <div>
-                <p className="text-sm font-display text-white group-hover:text-gold transition-colors tracking-widest uppercase truncate max-w-[180px]">{t.name}</p>
+                <p className="text-sm font-display text-white group-hover:text-[#b8860b] transition-colors tracking-widest uppercase truncate max-w-[180px]">{t.name}</p>
                 <p className="text-[9px] font-mono text-silver-500 uppercase mt-0.5">{t.format.replace(/_/g, ' ')}</p>
               </div>
               <div>

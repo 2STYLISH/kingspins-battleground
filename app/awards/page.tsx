@@ -2,14 +2,14 @@ import { createClient } from '@/lib/supabase/server';
 import TournamentSelect from '@/components/TournamentSelect';
 
 const TROPHY: Record<string, string> = {
-  BEST_PG: '🎯',
-  BEST_SG: '🔥',
-  BEST_SF: '🦅',
-  BEST_PF: '💪',
-  BEST_CENTER: '🧱',
+  BEST_PG: '🏆',
+  BEST_SG: '🏆',
+  BEST_SF: '🏆',
+  BEST_PF: '🏆',
+  BEST_CENTER: '🏆',
   FINALS_MVP: '🏆',
-  OVERALL_MVP: '🌟',
-  OVERALL_DPOY: '🛡️',
+  OVERALL_MVP: '🏆',
+  OVERALL_DPOY: '🏆',
 };
 
 export default async function PublicAwardsPage({ searchParams }: { searchParams: { tournament_id?: string } }) {
@@ -48,7 +48,10 @@ export default async function PublicAwardsPage({ searchParams }: { searchParams:
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-4xl text-white mb-2 uppercase tracking-widest">{activeTournamentName}</h1>
+        <p className="text-[10px] text-[#b8860b] font-mono uppercase tracking-[0.3em] mb-2">BATTLEGROUND AWARDS</p>
+        <h1 className="text-5xl text-white font-display tracking-widest uppercase mb-4 drop-shadow-[0_0_15px_rgba(229,0,0,0.3)]">
+          {activeTournamentName}
+        </h1>
 
         <TournamentSelect
           tournaments={tournaments ?? []}
@@ -60,28 +63,28 @@ export default async function PublicAwardsPage({ searchParams }: { searchParams:
       {!activeTournamentId ? (
         <p className="text-silver-500 text-sm">No tournaments found.</p>
       ) : (awards ?? []).length === 0 ? (
-        <div className="card p-10 text-center">
-          <p className="text-silver-600 text-sm">
+        <div className="border border-surface-700 bg-[#080808] rounded p-10 text-center shadow-lg">
+          <p className="text-silver-600 text-sm font-mono uppercase tracking-widest">
             No awards published yet for this tournament. Admins are reviewing candidates.
           </p>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {(awards ?? []).map((a: any) => {
             const teamName = playerTeams.get(a.winner_player_id);
             return (
-              <div key={a.id} className="card-hover p-6">
+              <div key={a.id} className="border border-surface-700 bg-[#080808]/90 backdrop-blur-sm p-6 rounded shadow-lg hover:border-red-600 transition-colors group">
                 <div className="flex items-center gap-3 mb-4">
-                  <span className="text-2xl">{TROPHY[a.award_type] ?? '🏅'}</span>
+                  <span className="text-3xl">{TROPHY[a.award_type] ?? '🏆'}</span>
                   <div>
-                    <p className="text-[10px] font-mono text-silver-600 uppercase tracking-widest">Award</p>
-                    <h2 className="text-sm text-white font-display tracking-widest">
+                    <p className="text-[10px] font-mono text-[#b8860b] uppercase tracking-widest">Award</p>
+                    <h2 className="text-sm text-white font-display tracking-widest uppercase group-hover:text-red-600 transition-colors">
                       {a.award_type.replace(/_/g, ' ')}
                     </h2>
                   </div>
                 </div>
 
-                <p className="text-2xl text-white font-display tracking-wide mb-1">
+                <p className="text-2xl text-[#b8860b] font-display tracking-wide mb-1 uppercase drop-shadow-md">
                   {a.winner?.gamertag ?? '—'}
                 </p>
                 {teamName && (

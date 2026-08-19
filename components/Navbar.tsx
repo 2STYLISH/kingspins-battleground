@@ -28,8 +28,9 @@ export default function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  // Profile dropdown state
+  // Profile & Mobile menu state
   const [profileOpen, setProfileOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
 
   // Check auth and subscribe to changes (login/logout)
@@ -92,6 +93,7 @@ export default function Navbar() {
     setQuery('');
     setResults([]);
     setSearchOpen(false);
+    setMobileMenuOpen(false);
     router.push(href);
   }
 
@@ -104,66 +106,67 @@ export default function Navbar() {
   }
 
   return (
-    <header className="border-b border-surface-700 bg-surface-950/80 backdrop-blur-md sticky top-0 z-50">
+    <header className="border-b border-surface-700 bg-[#080808]/90 backdrop-blur-md sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-4">
 
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-3 group shrink-0">
-          <div className="relative w-10 h-10 rounded-full overflow-hidden border border-surface-600 bg-surface-800 flex items-center justify-center group-hover:border-silver-400 transition-colors">
-            <Image src="/logo.png" alt="Kingpins Logo" fill className="object-cover" />
+        <Link href="/" className="flex items-center gap-3 shrink-0 group">
+          <div className="relative w-12 h-12 rounded-full overflow-hidden border border-surface-600 bg-surface-800 flex items-center justify-center group-hover:border-red-600 transition-colors">
+            <Image src="/bg-kingpins.png" alt="Kingpins Logo" fill className="object-cover" />
           </div>
-          <span className="font-display text-lg tracking-[0.2em] text-white hidden sm:block">
-            KINGPINS <span className="text-silver-400">BATTLEGROUND</span>
-          </span>
         </Link>
 
-        {/* Player Search */}
-        <div ref={searchRef} className="relative flex-1 max-w-xs">
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => { setQuery(e.target.value); setSearchOpen(true); }}
-            onFocus={() => setSearchOpen(true)}
-            placeholder="Search player…"
-            className="w-full bg-surface-900 border border-surface-700 rounded-lg px-3 py-1.5 text-sm text-silver-200 placeholder-silver-700 focus:outline-none focus:ring-1 focus:ring-silver-500 focus:border-silver-500 transition-colors"
-          />
-          {searchOpen && results.length > 0 && (
-            <div className="absolute top-full mt-1.5 left-0 right-0 bg-surface-900 border border-surface-700 rounded-xl shadow-2xl overflow-hidden z-50">
-              {results.map((p) => (
-                <button
-                  key={p.gamertag}
-                  onMouseDown={() => handleSearchSelect(p)}
-                  className="w-full text-left px-4 py-2.5 text-sm text-silver-200 hover:bg-surface-700 hover:text-white transition-colors flex items-center gap-2"
+        {/* Desktop Nav */}
+        <div className="hidden md:flex flex-1 items-center justify-end gap-6">
+          {/* Player Search */}
+          <div ref={searchRef} className="relative max-w-xs w-full lg:max-w-sm">
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => { setQuery(e.target.value); setSearchOpen(true); }}
+              onFocus={() => setSearchOpen(true)}
+              placeholder="Search player…"
+              className="w-full bg-[#111] border border-surface-700 rounded-lg px-3 py-1.5 text-sm text-silver-200 placeholder-silver-600 focus:outline-none focus:ring-1 focus:ring-red-600 focus:border-red-600 transition-colors"
+            />
+            {searchOpen && results.length > 0 && (
+              <div className="absolute top-full mt-1.5 left-0 right-0 bg-[#111] border border-surface-700 rounded-xl shadow-2xl overflow-hidden z-50">
+                {results.map((p) => (
+                  <button
+                    key={p.gamertag}
+                    onMouseDown={() => handleSearchSelect(p)}
+                    className="w-full text-left px-4 py-2.5 text-sm text-silver-200 hover:bg-surface-800 hover:text-red-600 transition-colors flex items-center gap-2"
+                  >
+                    <span className="text-[10px] font-mono text-silver-600">▶</span>
+                    {p.gamertag}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <nav className="flex items-center gap-2">
+            {LINKS.map((l) => {
+              const active = pathname === l.href || pathname.startsWith(l.href + '/');
+              return (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  className={`px-3 py-1.5 rounded-md text-sm font-body uppercase tracking-wider transition-colors ${active ? 'text-[#b8860b] font-bold' : 'text-silver-400 hover:text-red-600'
+                    }`}
                 >
-                  <span className="text-[10px] font-mono text-silver-600">▶</span>
-                  {p.gamertag}
-                </button>
-              ))}
-            </div>
-          )}
+                  {l.label}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
 
-        {/* Nav links */}
-        <nav className="hidden md:flex items-center gap-1 shrink-0">
-          {LINKS.map((l) => {
-            const active = pathname === l.href || pathname.startsWith(l.href + '/');
-            return (
-              <Link
-                key={l.href}
-                href={l.href}
-                className={`px-3 py-1.5 rounded-md text-sm font-body transition-colors ${active ? 'bg-surface-700 text-white' : 'text-silver-400 hover:text-white hover:bg-surface-800'
-                  }`}
-              >
-                {l.label}
-              </Link>
-            );
-          })}
-
-          {/* Profile dropdown */}
-          <div ref={profileRef} className="relative ml-1">
+        {/* Profile & Mobile Toggle */}
+        <div className="flex items-center gap-3">
+          <div ref={profileRef} className="relative">
             <button
               onClick={() => setProfileOpen(!profileOpen)}
-              className="w-9 h-9 rounded-full border border-surface-600 bg-surface-800 hover:border-silver-400 transition-colors flex items-center justify-center"
+              className="w-9 h-9 rounded-full border border-surface-600 bg-surface-800 hover:border-red-600 transition-colors flex items-center justify-center"
               title={username ?? 'Account'}
             >
               {username ? (
@@ -178,7 +181,7 @@ export default function Navbar() {
             </button>
 
             {profileOpen && (
-              <div className="absolute right-0 top-full mt-2 w-48 bg-surface-900 border border-surface-700 rounded-xl shadow-2xl overflow-hidden z-50">
+              <div className="absolute right-0 top-full mt-2 w-48 bg-[#111] border border-surface-700 rounded-xl shadow-2xl overflow-hidden z-50">
                 {username ? (
                   <>
                     <div className="px-4 py-3 border-b border-surface-700">
@@ -189,23 +192,23 @@ export default function Navbar() {
                       <Link
                         href="/admin"
                         onClick={() => setProfileOpen(false)}
-                        className="block w-full text-left px-4 py-2.5 text-sm text-gold hover:bg-surface-700 transition-colors"
+                        className="block w-full text-left px-4 py-2.5 text-sm text-silver-400 hover:bg-surface-800 transition-colors"
                       >
                         Admin Panel
                       </Link>
                     )}
                     <button
                       onClick={() => { setProfileOpen(false); handleLogout(); }}
-                      className="block w-full text-left px-4 py-2.5 text-sm text-silver-400 hover:text-white hover:bg-surface-700 transition-colors"
+                      className="block w-full text-left px-4 py-2.5 text-sm text-silver-400 hover:text-red-600 hover:bg-surface-800 transition-colors"
                     >
-                      ↩ Logout
+                      Logout
                     </button>
                   </>
                 ) : (
                   <Link
                     href="/login"
                     onClick={() => setProfileOpen(false)}
-                    className="block w-full text-left px-4 py-3 text-sm text-silver-300 hover:text-white hover:bg-surface-700 transition-colors"
+                    className="block w-full text-left px-4 py-3 text-sm text-silver-300 hover:text-white hover:bg-surface-800 transition-colors"
                   >
                     Login
                   </Link>
@@ -213,8 +216,69 @@ export default function Navbar() {
               </div>
             )}
           </div>
-        </nav>
+
+          <button
+            className="md:hidden text-silver-400 hover:text-white"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              {mobileMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
+        </div>
       </div>
+
+      {/* Mobile Menu Dropdown */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-surface-700 bg-[#080808]">
+          <div className="p-4 space-y-4">
+            {/* Mobile Search */}
+            <div className="relative w-full">
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search player…"
+                className="w-full bg-[#111] border border-surface-700 rounded-lg px-3 py-2 text-sm text-silver-200 placeholder-silver-600 focus:outline-none focus:border-red-600"
+              />
+              {query && results.length > 0 && (
+                <div className="absolute top-full mt-1.5 left-0 right-0 bg-[#111] border border-surface-700 rounded-xl overflow-hidden z-50">
+                  {results.map((p) => (
+                    <button
+                      key={p.gamertag}
+                      onClick={() => handleSearchSelect(p)}
+                      className="w-full text-left px-4 py-2.5 text-sm text-silver-200 hover:bg-surface-800 hover:text-red-600 transition-colors"
+                    >
+                      {p.gamertag}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <nav className="flex flex-col space-y-2">
+              {LINKS.map((l) => {
+                const active = pathname === l.href || pathname.startsWith(l.href + '/');
+                return (
+                  <Link
+                    key={l.href}
+                    href={l.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`px-4 py-2 rounded-md text-sm font-body uppercase tracking-wider transition-colors ${active ? 'bg-surface-800 text-[#b8860b] font-bold' : 'text-silver-400 hover:text-red-600'
+                      }`}
+                  >
+                    {l.label}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

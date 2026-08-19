@@ -56,8 +56,7 @@ export default function AdminHomePage() {
     <div>
       {/* Header */}
       <div className="mb-10 pb-8 border-b border-surface-700">
-        <p className="text-xs font-mono text-silver-600 uppercase tracking-[0.3em] mb-2">Control Room</p>
-        <h1 className="text-4xl text-white mb-2">ADMIN</h1>
+        <h1 className="text-4xl text-white mb-2">CONTROL ROOM</h1>
       </div>
 
       <div className="grid gap-3 md:grid-cols-2">

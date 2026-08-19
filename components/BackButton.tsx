@@ -18,7 +18,7 @@ export default function BackButton() {
     <button
       type="button"
       onClick={handleBack}
-      className="mb-6 inline-flex items-center gap-2 text-sm text-silver-500 hover:text-white transition-colors group"
+      className="mb-6 inline-flex items-center gap-2 text-sm text-silver-600 hover:text-white transition-colors group font-mono uppercase tracking-widest"
     >
       <span className="inline-block group-hover:-translate-x-0.5 transition-transform" aria-hidden>←</span>
       Back

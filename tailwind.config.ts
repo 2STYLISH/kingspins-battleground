@@ -23,8 +23,9 @@ const config: Config = {
           500: '#737373',
           600: '#525252',
         },
-        // Accent white for primary CTAs
-        accent: '#ffffff',
+        // Accent red for primary CTAs matching the intense theme
+        accent: '#e50000',
+        gold: '#b8860b',
       },
       fontFamily: {
         display: ['var(--font-display)'],
@@ -33,6 +34,9 @@ const config: Config = {
       },
       backgroundImage: {
         'grid-subtle': 'repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 40px), repeating-linear-gradient(90deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 40px)',
+        'kingpins': "url('/bg-kingpins.png')",
+        'home': "url('/bg-home.png')",
+        'other': "url('/bg-other.png')",
       },
       animation: {
         marquee: 'marquee 25s linear infinite',

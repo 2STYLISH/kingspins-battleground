@@ -89,22 +89,22 @@ export default async function TournamentDashboard({ params }: { params: { id: st
     <div className="space-y-10">
       <BackButton />
       <div>
-        <p className="text-xs font-mono text-crimson-400 uppercase">{tournament.status}</p>
-        <h1 className="text-4xl text-bone">{tournament.name}</h1>
-        <p className="text-mute text-sm mt-1">
-          {tournament.format.replace(/_/g, ' ')} · {tournament.match_format} · {tournament.start_date ?? 'TBD'} – {tournament.end_date ?? 'TBD'}
+        <p className="text-xs font-mono text-red-600 uppercase">{tournament.status.replace(/_/g, ' ')}</p>
+        <h1 className="text-4xl text-white font-display tracking-widest drop-shadow-[0_0_15px_rgba(229,0,0,0.3)]">{tournament.name}</h1>
+        <p className="text-silver-400 font-mono text-sm mt-1 uppercase tracking-widest">
+          {tournament.format.replace(/_/g, ' ')} · {tournament.match_format} · {tournament.start_date ? new Date(tournament.start_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'TBD'} – {tournament.end_date ? new Date(tournament.end_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'TBD'}
         </p>
       </div>
 
       {/* Champion banner */}
       {champ && (
-        <div className="card p-5 border-gold/50 bg-gold/5 flex items-center gap-4">
-          <span className="text-3xl">🏆</span>
+        <div className="border-2 border-[#b8860b] bg-[#b8860b]/40 p-5 rounded flex items-center gap-4 shadow-[0_0_30px_rgba(184,134,11,0.4)]">
+          <span className="text-4xl">🏆</span>
           <div>
-            <p className="text-[10px] font-mono text-gold uppercase tracking-widest mb-0.5">Champion</p>
-            <p className="text-xl text-white font-display tracking-widest">{champ.champion?.name}</p>
+            <p className="text-[10px] font-mono text-[#b8860b] uppercase tracking-widest mb-0.5">Champion</p>
+            <p className="text-2xl text-white font-display tracking-widest">{champ.champion?.name}</p>
             {champ.runner_up?.name && (
-              <p className="text-xs text-mute mt-0.5">Runner-up: {champ.runner_up.name}</p>
+              <p className="text-xs text-silver-400 font-mono mt-0.5">RUNNER-UP: {champ.runner_up.name}</p>
             )}
           </div>
         </div>
@@ -117,57 +117,57 @@ export default async function TournamentDashboard({ params }: { params: { id: st
 
       <section className="grid md:grid-cols-2 gap-6">
         <div>
-          <h2 className="text-xl text-bone mb-3">SEEDS</h2>
-          <div className="card p-4 space-y-1">
+          <h2 className="text-xl font-display text-white tracking-widest mb-3">SEEDS</h2>
+          <div className="border border-surface-700 bg-[#080808]/90 backdrop-blur-sm p-4 space-y-1 rounded shadow-lg">
             {(seeds ?? []).map((s: any) => (
-              <p key={s.seed} className="text-sm text-bone">#{s.seed} {s.team?.name}</p>
+              <p key={s.seed} className="text-sm font-mono text-white"><span className="text-silver-500 mr-2">#{s.seed}</span> {s.team?.name}</p>
             ))}
-            {(seeds ?? []).length === 0 && <p className="text-mute text-sm">Seeding not set yet.</p>}
+            {(seeds ?? []).length === 0 && <p className="text-silver-600 text-sm font-mono uppercase tracking-widest">Seeding not set yet.</p>}
           </div>
         </div>
 
         <div>
-          <h2 className="text-xl text-bone mb-3">UPCOMING MATCHES</h2>
-          <div className="card p-4 space-y-2">
+          <h2 className="text-xl font-display text-white tracking-widest mb-3">UPCOMING MATCHES</h2>
+          <div className="border border-surface-700 bg-[#080808]/90 backdrop-blur-sm p-4 space-y-2 rounded shadow-lg">
             {(upcoming ?? []).map((g: any) => (
-              <p key={g.id} className="text-sm text-bone">{g.home?.name} vs {g.away?.name} — {formatDate(g.scheduled_date)}</p>
+              <p key={g.id} className="text-sm font-mono text-white">{g.home?.name} <span className="text-silver-600 mx-1">VS</span> {g.away?.name} — <span className="text-[#b8860b]">{formatDate(g.scheduled_date)}</span></p>
             ))}
-            {(upcoming ?? []).length === 0 && <p className="text-mute text-sm">Nothing scheduled.</p>}
+            {(upcoming ?? []).length === 0 && <p className="text-silver-600 text-sm font-mono uppercase tracking-widest">Nothing scheduled.</p>}
           </div>
         </div>
       </section>
 
       <section>
-        <h2 className="text-xl text-bone mb-3">COMPLETED MATCHES</h2>
-        <div className="card p-4 space-y-2">
+        <h2 className="text-xl font-display text-white tracking-widest mb-3">COMPLETED MATCHES</h2>
+        <div className="border border-surface-700 bg-[#080808]/90 backdrop-blur-sm p-4 space-y-2 rounded shadow-lg">
           {(completed ?? []).map((g: any) => {
             const gameId = g.games?.[0]?.id;
             return gameId ? (
-              <Link key={g.id} href={`/games/${gameId}`} className="block text-sm text-silver-300 hover:text-white hover:underline">
-                {g.home?.name} vs {g.away?.name} — {g.round_label}
+              <Link key={g.id} href={`/games/${gameId}`} className="block text-sm font-mono text-silver-300 hover:text-red-600 hover:underline transition-colors">
+                {g.home?.name} <span className="text-silver-600 mx-1">VS</span> {g.away?.name} — <span className="text-silver-500">{g.round_label}</span>
               </Link>
             ) : (
-              <p key={g.id} className="text-sm text-bone">{g.home?.name} vs {g.away?.name} — {g.round_label}</p>
+              <p key={g.id} className="text-sm font-mono text-silver-300">{g.home?.name} <span className="text-silver-600 mx-1">VS</span> {g.away?.name} — <span className="text-silver-500">{g.round_label}</span></p>
             );
           })}
-          {(completed ?? []).length === 0 && <p className="text-mute text-sm">No results yet.</p>}
+          {(completed ?? []).length === 0 && <p className="text-silver-600 text-sm font-mono uppercase tracking-widest">No results yet.</p>}
         </div>
       </section>
 
       {/* Player Stats */}
       {teamStatsMap.size > 0 && (
         <section>
-          <h2 className="text-xl text-bone mb-6">PLAYER STATS</h2>
+          <h2 className="text-xl font-display text-white tracking-widest mb-6">PLAYER STATS</h2>
           <div className="space-y-8">
             {[...teamStatsMap.entries()].map(([teamId, { teamName, players: teamPlayers }]) => (
               <div key={teamId}>
-                <h3 className="text-sm font-mono text-gold uppercase tracking-widest mb-3">{teamName}</h3>
-                <div className="card overflow-hidden">
+                <h3 className="text-lg font-display text-[#b8860b] tracking-widest mb-3">{teamName}</h3>
+                <div className="bg-[#080808]/90 backdrop-blur-sm border border-surface-700 rounded overflow-hidden shadow-lg">
                   <div className="overflow-x-auto">
-                    <table className="w-full text-xs stat-mono">
+                    <table className="w-full text-xs font-mono">
                       <thead>
-                        <tr className="border-b border-surface-700 text-silver-600 uppercase tracking-wider">
-                          <th className="text-left px-5 py-3 font-mono">Player</th>
+                        <tr className="bg-[#111] border-b border-surface-700 text-red-600 uppercase tracking-widest text-[10px]">
+                          <th className="text-left px-5 py-4">Player</th>
                           <th className="px-3 py-3 text-right">GP</th>
                           <th className="px-3 py-3 text-right">PPG</th>
                           <th className="px-3 py-3 text-right">RPG</th>

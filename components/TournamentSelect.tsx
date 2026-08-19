@@ -27,7 +27,7 @@ export default function TournamentSelect({
       <select
         value={activeId}
         onChange={handleChange}
-        className="bg-surface-900 border border-surface-600 rounded px-3 py-1.5 text-silver-200 text-xs font-mono uppercase tracking-widest focus:outline-none focus:border-silver-400 focus:ring-1 focus:ring-silver-400"
+        className="bg-[#111] border border-surface-700 rounded px-3 py-1.5 text-silver-200 text-xs font-mono uppercase tracking-widest focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition-colors"
       >
         {tournaments.map((t) => (
           <option key={t.id} value={t.id}>

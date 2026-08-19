@@ -25,14 +25,14 @@ function getTierBadge(tier: number | null) {
 }
 
 const AWARD_LABELS: Record<string, { label: string; icon: string }> = {
-  BEST_PG: { label: 'Best Point Guard', icon: '🎯' },
-  BEST_SG: { label: 'Best Shooting Guard', icon: '🔥' },
-  BEST_SF: { label: 'Best Small Forward', icon: '🦅' },
-  BEST_PF: { label: 'Best Power Forward', icon: '💪' },
-  BEST_CENTER: { label: 'Best Center', icon: '🧱' },
+  BEST_PG: { label: 'Best Point Guard', icon: '🏆' },
+  BEST_SG: { label: 'Best Shooting Guard', icon: '🏆' },
+  BEST_SF: { label: 'Best Small Forward', icon: '🏆' },
+  BEST_PF: { label: 'Best Power Forward', icon: '🏆' },
+  BEST_CENTER: { label: 'Best Center', icon: '🏆' },
   FINALS_MVP: { label: 'Finals MVP', icon: '🏆' },
-  OVERALL_MVP: { label: 'Overall MVP', icon: '🌟' },
-  OVERALL_DPOY: { label: 'Overall DPOY', icon: '🛡️' },
+  OVERALL_MVP: { label: 'Overall MVP', icon: '🏆' },
+  OVERALL_DPOY: { label: 'Overall DPOY', icon: '🏆' },
 };
 
 function pct(made: number, attempted: number) {
@@ -420,7 +420,7 @@ export default async function PlayerPage({ params }: { params: { slug: string } 
                 return (
                   <Link href={`/games/${game.id}`} key={game.id + idx} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border border-surface-700 bg-surface-950 hover:bg-surface-800 transition-colors rounded group">
                     <div className="flex items-center gap-3">
-                      <div className={`w-6 h-6 flex items-center justify-center rounded font-mono text-[10px] font-bold ${didWin ? 'bg-gold text-black' : 'bg-surface-700 text-silver-400'}`}>
+                      <div className={`w-6 h-6 flex items-center justify-center rounded font-mono text-[10px] font-bold ${didWin ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
                         {didWin ? 'W' : 'L'}
                       </div>
                       <div>

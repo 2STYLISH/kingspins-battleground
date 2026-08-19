@@ -72,16 +72,16 @@ export default function BracketTree({ matchups }: { matchups: Matchup[] }) {
 
 function BracketSection({ title, matchups }: { title: string; matchups: Matchup[] }) {
   const rounds = [...new Set(matchups.map((m) => m.round))].sort((a, b) => a - b);
-  
+
   return (
     <div>
-      <h3 className="text-xl font-display text-gold tracking-[0.2em] mb-4">{title}</h3>
+      <h3 className="text-xl font-display text-[#b8860b] tracking-[0.2em] mb-4">{title}</h3>
       <div className="flex gap-6 overflow-x-auto pb-4 pl-6">
         {rounds.map((round) => (
           <div key={round} className="flex flex-col justify-around gap-6 min-w-[220px]">
             <p className="text-xs font-mono text-silver-400 uppercase tracking-widest mb-2">
-              {title === 'GRAND FINAL' 
-                ? (round === 1 ? 'MATCH 1' : 'BRACKET RESET')
+              {title === 'GRAND FINAL'
+                ? (round === 1 ? 'MATCH 1' : 'MATCH 2')
                 : (ROUND_LABELS[round] ?? `ROUND ${round}`)}
             </p>
             {matchups
@@ -104,12 +104,12 @@ function MatchCard({ matchup }: { matchup: Matchup }) {
 
   return (
     <div className="relative">
-      <div className="absolute -left-6 top-1/2 -translate-y-1/2 text-[10px] font-mono text-mute">{matchup.matchNumber}</div>
-      <a href={href} className="card p-3 block hover:border-gold/60 transition-colors">
+      <div className="absolute -left-6 top-1/2 -translate-y-1/2 text-[10px] font-mono text-silver-600">{matchup.matchNumber}</div>
+      <a href={href} className="border border-surface-700 bg-[#080808]/90 backdrop-blur-sm p-3 block hover:border-red-600 transition-colors rounded shadow-lg">
         <TeamRow name={matchup.team_a?.name} isWinner={isComplete && matchup.winner_id === matchup.team_a?.id} isByePlaceholder={matchup.is_bye && !matchup.team_a} placeholderText={matchup.sourceA} />
-        <div className="hairline border-t my-1" />
+        <div className="border-t border-surface-700 my-1" />
         <TeamRow name={matchup.team_b?.name} isWinner={isComplete && matchup.winner_id === matchup.team_b?.id} isByePlaceholder={matchup.is_bye && !matchup.team_b} placeholderText={matchup.sourceB} />
-        <p className="text-[10px] font-mono uppercase text-mute mt-2">
+        <p className="text-[10px] font-mono uppercase text-silver-500 mt-2">
           {matchup.is_bye ? 'BYE' : isComplete ? 'FINAL' : matchup.status === 'SCHEDULED' ? 'SCHEDULED' : matchup.team_a && matchup.team_b ? 'VS' : 'TBD'}
         </p>
       </a>
@@ -119,10 +119,10 @@ function MatchCard({ matchup }: { matchup: Matchup }) {
 
 function TeamRow({ name, isWinner, isByePlaceholder, placeholderText }: { name?: string; isWinner: boolean; isByePlaceholder?: boolean; placeholderText?: string }) {
   if (isByePlaceholder) {
-    return <p className="text-sm text-mute italic">BYE</p>;
+    return <p className="text-sm text-silver-600 italic">BYE</p>;
   }
   return (
-    <p className={`text-sm truncate ${isWinner ? 'text-gold font-semibold' : 'text-bone'} ${!name ? 'text-mute/50 italic text-[13px]' : ''}`}>
+    <p className={`text-sm truncate ${isWinner ? 'text-red-600 font-semibold drop-shadow-[0_0_10px_rgba(229,0,0,0.5)]' : 'text-white'} ${!name ? 'text-silver-600 italic text-[13px]' : ''}`}>
       {name ?? placeholderText ?? 'TBD'}
     </p>
   );

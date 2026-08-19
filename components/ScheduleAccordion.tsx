@@ -23,10 +23,10 @@ export default function ScheduleAccordion({
   });
 
   return (
-    <div className="border border-surface-700 bg-surface-950 rounded overflow-hidden">
+    <div className="border border-surface-700 bg-[#080808]/90 backdrop-blur-sm rounded overflow-hidden shadow-lg">
       <button 
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between p-4 bg-surface-900 hover:bg-surface-800 transition-colors text-left"
+        className="w-full flex items-center justify-between p-4 bg-[#111] hover:bg-surface-800 transition-colors text-left"
       >
         <h2 className="text-xl font-display text-white uppercase tracking-widest">{tournamentName}</h2>
         <div className="flex items-center gap-4">
@@ -41,7 +41,7 @@ export default function ScheduleAccordion({
         <div className="p-4 md:p-6 space-y-6 border-t border-surface-700">
           {[...groupedByDate.entries()].map(([date, list]) => (
             <div key={date}>
-              <p className="text-[10px] font-mono text-gold uppercase tracking-widest mb-3 border-b border-surface-700 pb-1">{new Date(date).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}</p>
+              <p className="text-[10px] font-mono text-[#b8860b] uppercase tracking-widest mb-3 border-b border-surface-700 pb-1">{new Date(date).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}</p>
               <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                 {list.map((g: any) => {
                   const displayTime = g.scheduled_time 
@@ -55,9 +55,9 @@ export default function ScheduleAccordion({
                       <div className="flex justify-between items-start mb-3">
                         <p className="text-[10px] text-silver-500 font-mono uppercase tracking-widest">{displayTime}</p>
                         <span className={`text-[9px] font-mono uppercase tracking-widest font-bold px-1.5 py-0.5 rounded ${
-                          g.status === 'COMPLETED' ? 'bg-surface-800 text-silver-500 border border-surface-700' :
-                          g.status === 'IN_PROGRESS' ? 'bg-gold text-black' :
-                          'bg-surface-800 text-silver-300 border border-surface-700'
+                          g.status === 'COMPLETED' ? 'bg-[#111] text-silver-500 border border-surface-700' :
+                          g.status === 'IN_PROGRESS' ? 'bg-red-600 text-white' :
+                          'bg-[#111] text-silver-300 border border-surface-700'
                         }`}>
                           {g.status === 'IN_PROGRESS' ? 'LIVE' : g.status === 'SCHEDULED' ? 'UPCOMING' : g.status}
                         </span>
@@ -67,12 +67,12 @@ export default function ScheduleAccordion({
                         <span className="text-silver-600 font-mono text-[9px] mx-2">VS</span>
                         <p className="text-white font-display tracking-wider uppercase truncate flex-1 text-right">{g.away?.name ?? 'TBD'}</p>
                       </div>
-                      {g.round_label && <p className="text-[9px] text-crimson-400 mt-3 uppercase font-mono tracking-widest">{g.round_label}</p>}
+                      {g.round_label && <p className="text-[9px] text-red-600 mt-3 uppercase font-mono tracking-widest">{g.round_label}</p>}
                     </>
                   );
 
                   return isComplete ? (
-                    <Link key={g.id} href={`/games/${gameId}`} className="block p-4 border border-surface-700 bg-surface-900 hover:border-gold/60 transition-colors rounded">
+                    <Link key={g.id} href={`/games/${gameId}`} className="block p-4 border border-surface-700 bg-surface-900 hover:border-red-600 transition-colors rounded">
                       {CardContent}
                     </Link>
                   ) : (

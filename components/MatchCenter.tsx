@@ -48,9 +48,9 @@ export default function MatchCenter({ games = [] }: { games: any[] }) {
   const fTournament = featured.schedule?.tournament?.name || 'PRO-AM LEAGUE';
 
   return (
-    <div className="w-full bg-transparent border border-surface-800 rounded overflow-hidden">
+    <div className="w-full bg-black/70 backdrop-blur-sm border border-surface-700/50 rounded overflow-hidden shadow-2xl">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-surface-800 bg-transparent">
+      <div className="flex items-center justify-between p-4 border-b border-surface-700/50">
         <div>
           <h2 className="text-2xl font-display text-white uppercase tracking-wider">MATCH CENTER</h2>
           <p className="text-[9px] text-silver-600 font-mono uppercase tracking-widest">RECENT FINALS, BOX SCORES</p>
@@ -82,10 +82,10 @@ export default function MatchCenter({ games = [] }: { games: any[] }) {
 
       <div className="flex flex-col lg:flex-row">
         {/* Featured Match (Left Panel) */}
-        <div className="flex-1 p-5 flex flex-col justify-between min-h-[220px] bg-transparent relative border-b lg:border-b-0 lg:border-r border-surface-800">
+        <div className="flex-1 p-5 flex flex-col justify-between min-h-[220px] bg-transparent relative border-b lg:border-b-0 lg:border-r border-surface-700/50">
           <div className="flex justify-between items-start mb-6">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] text-gold font-mono uppercase tracking-widest">FINAL</span>
+              <span className="text-[10px] text-red-600 font-mono uppercase tracking-widest font-bold">FINAL</span>
             </div>
             <div className="text-right">
               <span className="text-[9px] text-silver-500 font-mono uppercase tracking-widest block">{fTournament}</span>
@@ -125,7 +125,7 @@ export default function MatchCenter({ games = [] }: { games: any[] }) {
           </div>
 
           <div className="flex justify-between items-end border-t border-surface-800 pt-4 mt-auto">
-            <span className="text-[10px] font-mono text-silver-400 uppercase tracking-widest">
+            <span className="text-[10px] font-mono text-red-600 uppercase tracking-widest font-bold">
               {fHomeWin ? `${fHome} WINS` : fAwayWin ? `${fAway} WINS` : 'TIE'}
             </span>
             <div
@@ -138,7 +138,7 @@ export default function MatchCenter({ games = [] }: { games: any[] }) {
         </div>
 
         {/* Recent Matches List (Right Panel) */}
-        <div className="w-full lg:w-[320px] xl:w-[360px] flex flex-col divide-y divide-surface-800 bg-transparent shrink-0">
+        <div className="w-full lg:w-[320px] xl:w-[360px] flex flex-col divide-y divide-surface-700/50 bg-transparent shrink-0">
           {gridGames.map(g => <GridMatch key={g.id} game={g} />)}
         </div>
       </div>
@@ -161,8 +161,8 @@ function GridMatch({ game }: { game: any }) {
   return (
     <div onClick={() => router.push(`/games/${game.id}`)} className="cursor-pointer flex-1 p-3 bg-transparent hover:bg-surface-800/20 transition-colors flex flex-col justify-center min-h-[100px] relative group block">
       <div className="flex justify-between items-center mb-4">
-        <span className="text-[9px] font-mono text-silver-600 uppercase tracking-widest">
-          FINAL · {formatDateHuman(game.schedule?.scheduled_date)}
+        <span className="text-[9px] font-mono text-red-600 uppercase tracking-widest font-bold">
+          FINAL <span className="text-silver-600 font-normal">· {formatDateHuman(game.schedule?.scheduled_date)}</span>
         </span>
       </div>
 

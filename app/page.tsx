@@ -30,7 +30,7 @@ export default async function HomePage() {
   }).slice(0, 20);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Match Center */}
       {sortedGames && sortedGames.length > 0 && (
         <section>
@@ -39,38 +39,26 @@ export default async function HomePage() {
       )}
 
       {/* Hero */}
-      <section className="relative overflow-hidden rounded-2xl border border-surface-700 bg-surface-900">
-        {/* Subtle grid texture */}
-        <div className="absolute inset-0 bg-grid-subtle opacity-100 pointer-events-none" />
+      <section
+        className="relative overflow-hidden rounded-2xl border border-surface-700/50 shadow-[0_0_50px_rgba(229,0,0,0.05)] bg-[size:100%_100%] bg-center bg-no-repeat min-h-[300px] md:min-h-[380px] flex items-end p-8 md:p-12"
+        style={{ backgroundImage: "url('/bg-container.png')" }}
+      >
         {/* Glow top-left */}
-        <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-white/[0.03] blur-3xl pointer-events-none" />
+        <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-accent/[0.05] blur-3xl pointer-events-none" />
 
-        <div className="relative px-8 md:px-16 py-12">
-          <p className="text-silver-500 font-mono text-[10px] tracking-[0.4em] uppercase mb-4">
-            NBA2K26 · Pro-Am League
-          </p>
-          <h1 className="text-5xl md:text-7xl leading-[0.92] text-white">
-            EVERY GAME
-            <br />
-            <span className="text-silver-400">CROWNS A KING.</span>
-          </h1>
-          <p className="mt-4 max-w-lg text-silver-500 text-sm leading-relaxed">
-            Step into Kingpins Battleground where the best Pro-Am teams compete, rivalries are built, and every tournaments leaves a legacy.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link
-              href="/schedule"
-              className="btn-primary"
-            >
-              VIEW SCHEDULE
-            </Link>
-            <Link
-              href="/tournaments"
-              className="btn-secondary"
-            >
-              VIEW TOURNAMENTS
-            </Link>
-          </div>
+        <div className="relative w-full flex flex-wrap gap-4 z-10 mt-auto">
+          <Link
+            href="/schedule"
+            className="px-6 py-2.5 bg-transparent border border-white text-white font-display uppercase tracking-widest rounded transition-colors hover:bg-red-600 hover:border-red-600"
+          >
+            VIEW SCHEDULE
+          </Link>
+          <Link
+            href="/tournaments"
+            className="px-6 py-2.5 bg-transparent border border-white text-white font-display uppercase tracking-widest rounded transition-colors hover:bg-red-600 hover:border-red-600 hover:text-white"
+          >
+            VIEW TOURNAMENTS
+          </Link>
         </div>
       </section>
 
