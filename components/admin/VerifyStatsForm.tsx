@@ -232,14 +232,24 @@ export default function VerifyStatsForm({
       {/* Team tables */}
       <StatTable
         teamName={homeTeamName}
-        rows={homeRows}
+        rows={[...homeRows].sort((a, b) => {
+          const POS_ORDER: Record<string, number> = { PG: 1, SG: 2, SF: 3, PF: 4, C: 5 };
+          const posA = a.position ? POS_ORDER[a.position] || 99 : 99;
+          const posB = b.position ? POS_ORDER[b.position] || 99 : 99;
+          return posA - posB;
+        })}
         activePlayers={homeActive}
         onToggleDNP={(id) => toggleDNP('home', id)}
         onChange={(id, f, v) => updateCell('home', id, f, v)}
       />
       <StatTable
         teamName={awayTeamName}
-        rows={awayRows}
+        rows={[...awayRows].sort((a, b) => {
+          const POS_ORDER: Record<string, number> = { PG: 1, SG: 2, SF: 3, PF: 4, C: 5 };
+          const posA = a.position ? POS_ORDER[a.position] || 99 : 99;
+          const posB = b.position ? POS_ORDER[b.position] || 99 : 99;
+          return posA - posB;
+        })}
         activePlayers={awayActive}
         onToggleDNP={(id) => toggleDNP('away', id)}
         onChange={(id, f, v) => updateCell('away', id, f, v)}

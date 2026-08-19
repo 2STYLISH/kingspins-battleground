@@ -82,7 +82,7 @@ export default async function PlayerPage({ params }: { params: { slug: string } 
   const { data: statsRaw } = await supabase
     .from('player_game_stats')
     .select(
-      'id, pts, reb, ast, stl, blk, fgm, fga, tpm, tpa, ftm, fta, turnovers, did_not_play, is_verified, team_id, game:games!player_game_stats_game_id_fkey(id, home_team_id, away_team_id, home_score, away_score, played_at, home:teams!games_home_team_id_fkey(name, logo_url), away:teams!games_away_team_id_fkey(name, logo_url), schedule:schedules(scheduled_date, tournament_id, tournament:tournaments(id, name)))'
+      'id, pts, reb, ast, stl, blk, fgm, fga, tpm, tpa, ftm, fta, turnovers, did_not_play, is_verified, team_id, position, game:games!player_game_stats_game_id_fkey(id, home_team_id, away_team_id, home_score, away_score, played_at, home:teams!games_home_team_id_fkey(name, logo_url), away:teams!games_away_team_id_fkey(name, logo_url), schedule:schedules(scheduled_date, tournament_id, tournament:tournaments(id, name)))'
     )
     .eq('player_id', player.id)
     .eq('is_verified', true)
