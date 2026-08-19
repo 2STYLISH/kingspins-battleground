@@ -27,6 +27,11 @@ export default async function SchedulePage({ searchParams }: { searchParams: { f
     // Handle Supabase returning arrays for foreign keys
     const tournamentObj = Array.isArray(g.tournament) ? g.tournament[0] : g.tournament;
     
+    // Skip games if the tournament is completed
+    if (tournamentObj && tournamentObj.status === 'COMPLETED') {
+      return;
+    }
+    
     if (g.tournament_id && tournamentObj) {
       const group = groupedByTournament.get(g.tournament_id) ?? {
         tournamentName: tournamentObj.name,
