@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { createTeam, deleteTeam, assignPlayerToTournamentTeam, removePlayerFromTournamentTeam, updateTeamLogo } from '@/lib/actions/teams';
+import { updateTournamentLogo } from '@/lib/actions/tournaments';
 
 interface Tournament {
   id: string;
@@ -50,7 +51,8 @@ export default function TeamsManager({
   const [busy, setBusy] = useState(false);
   const [activeTournament, setActiveTournament] = useState<string>(tournaments[0]?.id || '');
 
-  async function handleCreateTeam() {
+  async function handleCreateTeam(e?: React.FormEvent) {
+    if (e) e.preventDefault();
     if (!newTeamName.trim()) return;
     setBusy(true);
     try {
@@ -62,40 +64,73 @@ export default function TeamsManager({
     }
   }
 
+  const [uploadingTourney, setUploadingTourney] = useState(false);
+  async function handleTourneyLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !activeTournament) return;
+    setUploadingTourney(true);
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `${activeTournament}.${ext}`;
+      const supabase = createClient();
+      const { error: uploadError } = await supabase.storage.from('tournament-logos').upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from('tournament-logos').getPublicUrl(path);
+      const publicUrl = urlData.publicUrl + `?t=${Date.now()}`;
+      await updateTournamentLogo(activeTournament, publicUrl);
+      router.refresh();
+    } catch (err: any) {
+      alert('Upload failed: ' + (err.message || 'Unknown error'));
+    } finally {
+      setUploadingTourney(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Top controls: Create Team & Select Tournament */}
       <div className="grid md:grid-cols-2 gap-4">
         <div className="card p-5">
           <h2 className="font-display text-sm text-silver-400 uppercase tracking-widest mb-4">New Team</h2>
-          <div className="flex gap-3">
+          <form className="flex gap-3" onSubmit={handleCreateTeam}>
             <input
               value={newTeamName}
               onChange={(e) => setNewTeamName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleCreateTeam()}
               placeholder="Team name"
               className="input-field"
             />
-            <button type="button" onClick={handleCreateTeam} disabled={busy || !newTeamName.trim()} className="btn-primary whitespace-nowrap">
+            <button type="submit" disabled={busy || !newTeamName.trim()} className="btn-primary whitespace-nowrap">
               ADD TEAM
             </button>
-          </div>
+          </form>
         </div>
 
         <div className="card p-5 border-gold/40 shadow-[0_0_15px_rgba(255,215,0,0.05)]">
           <h2 className="font-display text-sm text-gold uppercase tracking-widest mb-4">Active Tournament Rosters</h2>
           <div className="flex items-center gap-3">
-            {tournaments.find(t => t.id === activeTournament)?.logo_url ? (
-              <img 
-                src={tournaments.find(t => t.id === activeTournament)?.logo_url!} 
-                alt="Tournament Logo" 
-                className="w-10 h-10 rounded border border-surface-600 object-cover shrink-0 bg-surface-800"
-              />
-            ) : (
-              <div className="w-10 h-10 rounded border border-surface-600 shrink-0 bg-surface-800 flex items-center justify-center">
-                <span className="text-[9px] text-mute font-mono">LOGO</span>
+            <label htmlFor="tourney-logo-upload" className="relative cursor-pointer group shrink-0" title="Click to upload tournament logo">
+              <div className="w-10 h-10 rounded border border-surface-600 bg-surface-800 flex items-center justify-center overflow-hidden group-hover:border-gold/50 transition-colors">
+                {uploadingTourney ? (
+                  <span className="text-[9px] text-mute font-mono">...</span>
+                ) : tournaments.find(t => t.id === activeTournament)?.logo_url ? (
+                  <img 
+                    src={tournaments.find(t => t.id === activeTournament)?.logo_url!} 
+                    alt="Tournament Logo" 
+                    className="w-full h-full object-cover bg-surface-800"
+                  />
+                ) : (
+                  <span className="text-[9px] text-mute font-mono group-hover:text-silver-300 transition-colors">LOGO</span>
+                )}
               </div>
-            )}
+              <input
+                id="tourney-logo-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleTourneyLogoUpload}
+                disabled={uploadingTourney || !activeTournament}
+                className="sr-only"
+              />
+            </label>
             <select 
               value={activeTournament} 
               onChange={e => setActiveTournament(e.target.value)}
@@ -208,7 +243,7 @@ function TeamCard({ team, roster, tournamentId, unassignedPlayers }: { team: Tea
       <div className="flex items-center justify-between mb-4 pb-3 border-b border-surface-700">
         <div className="flex items-center gap-3">
           {/* Logo preview / upload */}
-          <label className="relative cursor-pointer group" title="Click to upload logo">
+          <label htmlFor={`logo-upload-${team.id}`} className="relative cursor-pointer group" title="Click to upload logo">
             <div className="w-10 h-10 rounded-lg bg-surface-800 border border-surface-600 group-hover:border-silver-400 transition-colors overflow-hidden flex items-center justify-center">
               {logoUrl ? (
                 <img src={logoUrl} alt={team.name} className="w-full h-full object-cover" />
@@ -219,6 +254,7 @@ function TeamCard({ team, roster, tournamentId, unassignedPlayers }: { team: Tea
               )}
             </div>
             <input
+              id={`logo-upload-${team.id}`}
               type="file"
               accept="image/*"
               onChange={handleLogoUpload}

@@ -81,7 +81,7 @@ export default function TournamentAdminActions({
     <div className="pt-3 border-t border-surface-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       {/* Logo Upload */}
       <div className="flex items-center gap-3">
-        <label className="w-10 h-10 rounded bg-surface-800 flex items-center justify-center border border-surface-600 cursor-pointer overflow-hidden relative hover:border-gold/50 transition-colors shrink-0">
+        <label htmlFor={`tourney-logo-${tournamentId}`} className="w-10 h-10 rounded bg-surface-800 flex items-center justify-center border border-surface-600 cursor-pointer overflow-hidden relative hover:border-gold/50 transition-colors shrink-0">
           {uploading ? (
             <span className="text-[9px] text-mute font-mono">...</span>
           ) : logoUrl ? (
@@ -89,7 +89,7 @@ export default function TournamentAdminActions({
           ) : (
             <span className="text-[9px] text-mute font-mono">LOGO</span>
           )}
-          <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={uploading} />
+          <input id={`tourney-logo-${tournamentId}`} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={uploading} />
         </label>
       </div>
       {/* Championship award name */}
