@@ -160,19 +160,35 @@ export default async function PlayerPage({ params }: { params: { slug: string } 
   const topg = gamesPlayed > 0 ? (totalTov / gamesPlayed).toFixed(1) : 0;
 
   // 3. Achievements
-  const { data: championships } = await supabase
-    .from('championships')
-    .select('tournament_id, champion_team_id, runner_up_team_id, tournament:tournaments(name, championship_award_name)')
-    .or(`champion_team_id.eq.${player.team_id ?? 'null'},runner_up_team_id.eq.${player.team_id ?? 'null'}`);
+  const tournamentIds = currentRosters?.map(r => r.tournament_id) || [];
+  let champWins: any[] = [];
+  let runnerUps: any[] = [];
+
+  if (tournamentIds.length > 0) {
+    const { data: championships } = await supabase
+      .from('championships')
+      .select('tournament_id, champion_team_id, runner_up_team_id, tournament:tournaments(name, championship_award_name)')
+      .in('tournament_id', tournamentIds);
+
+    if (championships) {
+      for (const champ of championships) {
+        const playerRoster = currentRosters?.find(r => r.tournament_id === champ.tournament_id);
+        if (playerRoster) {
+          if (champ.champion_team_id === playerRoster.team_id) {
+            champWins.push(champ);
+          } else if (champ.runner_up_team_id === playerRoster.team_id) {
+            runnerUps.push(champ);
+          }
+        }
+      }
+    }
+  }
 
   const { data: awards } = await supabase
     .from('awards')
     .select('award_type, tournament_id, season_id, tournament:tournaments(name), season:seasons(name)')
     .eq('winner_player_id', player.id)
     .eq('status', 'PUBLISHED');
-
-  const champWins = (championships ?? []).filter((c: any) => c.champion_team_id === player.team_id);
-  const runnerUps = (championships ?? []).filter((c: any) => c.runner_up_team_id === player.team_id && c.champion_team_id !== player.team_id);
 
   // 4. Recent matches (Last 10)
   const recentGames = stats.slice(0, 10);

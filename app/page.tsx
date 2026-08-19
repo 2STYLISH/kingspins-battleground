@@ -16,18 +16,25 @@ export default async function HomePage() {
     supabase.from('awards').select('id, award_type, winner_player_id').eq('status', 'PUBLISHED').limit(3),
     supabase
       .from('games')
-      .select('id, home_score, away_score, schedule:schedules(scheduled_date, game_type, round_label, tournament:tournaments(name, logo_url)), home:teams!games_home_team_id_fkey(name, logo_url), away:teams!games_away_team_id_fkey(name, logo_url)')
+      .select('id, home_score, away_score, schedule:schedules(scheduled_date, scheduled_time, game_type, round_label, tournament:tournaments(name, logo_url)), home:teams!games_home_team_id_fkey(name, logo_url), away:teams!games_away_team_id_fkey(name, logo_url)')
       .in('status', ['VERIFIED', 'COMPLETED'])
       .order('verified_at', { ascending: false })
-      .limit(20),
+      .limit(50),
   ]);
+
+  // Sort games by scheduled date and time instead of upload time
+  const sortedGames = (recentGames || []).sort((a: any, b: any) => {
+    const dateTimeA = a.schedule?.scheduled_date ? new Date(`${a.schedule.scheduled_date}T${a.schedule.scheduled_time || '00:00:00'}`).getTime() : 0;
+    const dateTimeB = b.schedule?.scheduled_date ? new Date(`${b.schedule.scheduled_date}T${b.schedule.scheduled_time || '00:00:00'}`).getTime() : 0;
+    return dateTimeB - dateTimeA;
+  }).slice(0, 20);
 
   return (
     <div className="space-y-6">
       {/* Match Center */}
-      {recentGames && recentGames.length > 0 && (
+      {sortedGames && sortedGames.length > 0 && (
         <section>
-          <MatchCenter games={recentGames} />
+          <MatchCenter games={sortedGames} />
         </section>
       )}
 
