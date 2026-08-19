@@ -1,5 +1,6 @@
 'use server';
 
+export const maxDuration = 60;
 import { createClient, requireAdmin } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseGameScreenshot } from '@/lib/services/screenshot-parser';
@@ -240,7 +241,7 @@ export async function saveVerifiedGameStats(input: {
               .select('id, team_a_id, team_b_id, is_bye, feeds_into_matchup_id')
               .eq('id', currentTargetId)
               .single();
-            
+
             const targetMatchup: any = response.data;
 
             if (!targetMatchup) break;
