@@ -31,8 +31,11 @@ export default function ScreenshotUploadPanel({
       await uploadAndAnalyzeScreenshot({
         scheduleId,
         fileBase64: base64,
-        fileName: file.name,
-        contentType: file.type || 'image/jpeg',
+        // Match the extension to the JPEG bytes actually being uploaded.
+        fileName: file.name.replace(/\.[^.]+$/, '') + '.jpg',
+        // fileToBase64 always re-encodes to JPEG via canvas below, so the
+        // bytes we upload are JPEG regardless of the original file type.
+        contentType: 'image/jpeg',
       });
       router.refresh();
     } catch (e: any) {
