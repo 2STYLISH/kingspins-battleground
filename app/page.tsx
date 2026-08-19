@@ -83,9 +83,7 @@ export default async function HomePage() {
             <span className="text-silver-400">CROWNS A KING.</span>
           </h1>
           <p className="mt-6 max-w-lg text-silver-500 leading-relaxed">
-            KINGPINS BATTLEGROUND
-            HOME OF THE GOATED PLAYERS
-            PRO AM LEAGUES
+            Kingpins Battleground is where the grind meets greatness. Built for competitive Pro-Am players, where every game matters, every matchup tests you, and every victory adds to your legacy. This is where the GOATs compete, the best rise, and champions are made.
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
             <Link
