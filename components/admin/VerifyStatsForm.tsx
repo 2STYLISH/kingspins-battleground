@@ -26,9 +26,10 @@ interface StatRow {
   ftm: number | '';
   fta: number | '';
   turnovers: number | '';
+  position: string;
 }
 
-const FIELDS: (keyof Omit<StatRow, 'playerId' | 'gamertag' | 'didNotPlay'>)[] = [
+const FIELDS: (keyof Omit<StatRow, 'playerId' | 'gamertag' | 'didNotPlay' | 'position'>)[] = [
   'pts', 'reb', 'ast', 'stl', 'blk', 'fgm', 'fga', 'tpm', 'tpa', 'ftm', 'fta', 'turnovers',
 ];
 
@@ -39,7 +40,7 @@ const FIELD_LABELS: Record<string, string> = {
 
 function emptyRow(p: RosterPlayer): StatRow {
   return {
-    playerId: p.id, gamertag: p.gamertag, didNotPlay: true,
+    playerId: p.id, gamertag: p.gamertag, didNotPlay: true, position: '',
     pts: 0, reb: 0, ast: 0, stl: 0, blk: 0,
     fgm: 0, fga: 0, tpm: 0, tpa: 0, ftm: 0, fta: 0, turnovers: 0,
   };
@@ -56,6 +57,7 @@ function buildInitialRows(
       return {
         playerId: p.id, gamertag: p.gamertag,
         didNotPlay: existingRow.did_not_play ?? false,
+        position: existingRow.position ?? '',
         pts: existingRow.pts, reb: existingRow.reb, ast: existingRow.ast,
         stl: existingRow.stl, blk: existingRow.blk, fgm: existingRow.fgm,
         fga: existingRow.fga, tpm: existingRow.tpm, tpa: existingRow.tpa,
@@ -77,7 +79,7 @@ function buildInitialRows(
     });
     if (match) {
       return {
-        playerId: p.id, gamertag: p.gamertag, didNotPlay: false,
+        playerId: p.id, gamertag: p.gamertag, didNotPlay: false, position: '',
         pts: match.pts, reb: match.reb, ast: match.ast, stl: match.stl, blk: match.blk,
         fgm: match.fgm, fga: match.fga, tpm: match.tpm, tpa: match.tpa,
         ftm: match.ftm, fta: match.fta, turnovers: match.turnovers,
@@ -180,8 +182,8 @@ export default function VerifyStatsForm({
         homeScore,
         awayScore,
         players: [
-          ...homeRows.map((r) => ({ playerId: r.playerId, teamId: homeTeamId, didNotPlay: r.didNotPlay, ...pickAndParse(r) })),
-          ...awayRows.map((r) => ({ playerId: r.playerId, teamId: awayTeamId, didNotPlay: r.didNotPlay, ...pickAndParse(r) })),
+          ...homeRows.map((r) => ({ playerId: r.playerId, teamId: homeTeamId, didNotPlay: r.didNotPlay, position: r.position, ...pickAndParse(r) })),
+          ...awayRows.map((r) => ({ playerId: r.playerId, teamId: awayTeamId, didNotPlay: r.didNotPlay, position: r.position, ...pickAndParse(r) })),
         ],
       });
       setConfirming(false);
@@ -284,7 +286,7 @@ export default function VerifyStatsForm({
 }
 
 function pickAndParse(r: StatRow) {
-  const { playerId, gamertag, didNotPlay, ...rest } = r;
+  const { playerId, gamertag, didNotPlay, position, ...rest } = r;
   return {
     pts: Number(rest.pts) || 0,
     reb: Number(rest.reb) || 0,
@@ -308,7 +310,7 @@ function StatTable({
   rows: StatRow[];
   activePlayers: number;
   onToggleDNP: (playerId: string) => void;
-  onChange: (playerId: string, field: keyof StatRow, value: number | '') => void;
+  onChange: (playerId: string, field: keyof StatRow, value: number | '' | string) => void;
 }) {
   return (
     <div>
@@ -323,6 +325,7 @@ function StatTable({
           <thead>
             <tr className="text-silver-600 uppercase border-b border-surface-700">
               <th className="text-left py-2 pr-3 font-mono tracking-widest w-36">Player</th>
+              <th className="px-2 py-2 text-center w-16 text-silver-500">Pos</th>
               <th className="px-2 py-2 text-center w-16 text-silver-500">Status</th>
               {FIELDS.map((f) => (
                 <th key={f} className="px-1 py-2 text-right tracking-wider">
@@ -342,6 +345,21 @@ function StatTable({
               >
                 <td className="py-2 pr-3 text-silver-300 font-body whitespace-nowrap">
                   {r.gamertag}
+                </td>
+                <td className="px-2 py-1 text-center">
+                  <select
+                    value={r.position}
+                    disabled={r.didNotPlay}
+                    onChange={(e) => onChange(r.playerId, 'position', e.target.value)}
+                    className="w-12 bg-surface-900 border border-surface-600 rounded px-0.5 py-0.5 text-silver-200 focus:outline-none focus:ring-1 focus:ring-silver-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    <option value="">-</option>
+                    <option value="PG">PG</option>
+                    <option value="SG">SG</option>
+                    <option value="SF">SF</option>
+                    <option value="PF">PF</option>
+                    <option value="C">C</option>
+                  </select>
                 </td>
                 {/* DNP toggle */}
                 <td className="px-2 py-1 text-center">

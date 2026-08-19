@@ -39,8 +39,19 @@ export default async function GameBoxScorePage({ params }: { params: { id: strin
     .eq('game_id', game.id)
     .order('pts', { ascending: false });
 
-  const homeStats = stats?.filter(s => s.team_id === (game.home_team as any)?.id && !s.did_not_play) || [];
-  const awayStats = stats?.filter(s => s.team_id === (game.away_team as any)?.id && !s.did_not_play) || [];
+  const POS_ORDER: Record<string, number> = { PG: 1, SG: 2, SF: 3, PF: 4, C: 5 };
+  
+  function sortStats(statsArr: any[]) {
+    return statsArr.sort((a, b) => {
+      const posA = a.position ? POS_ORDER[a.position] || 99 : 99;
+      const posB = b.position ? POS_ORDER[b.position] || 99 : 99;
+      if (posA !== posB) return posA - posB;
+      return b.pts - a.pts; // Fallback to points descending
+    });
+  }
+
+  const homeStats = sortStats(stats?.filter(s => s.team_id === (game.home_team as any)?.id && !s.did_not_play) || []);
+  const awayStats = sortStats(stats?.filter(s => s.team_id === (game.away_team as any)?.id && !s.did_not_play) || []);
 
   // Determine POTG
   let potg: any = null;
@@ -108,9 +119,9 @@ export default async function GameBoxScorePage({ params }: { params: { id: strin
                 return (
                   <tr key={s.id} className="border-b border-surface-800/50 last:border-0 hover:bg-surface-800/30 transition-colors">
                     <td className="px-5 py-3 flex items-center gap-3">
-                      {p?.position && (
-                        <span className="w-6 text-center text-[9px] bg-blue-900/40 text-blue-400 border border-blue-800/60 rounded px-1 py-0.5 uppercase tracking-widest">
-                          {p.position.slice(0, 2)}
+                      {s.position && (
+                        <span className="w-6 text-center text-[9px] bg-blue-900/40 text-blue-400 border border-blue-800/60 rounded px-1 py-0.5 uppercase tracking-widest font-bold">
+                          {s.position.slice(0, 2)}
                         </span>
                       )}
                       <div className="flex items-center">

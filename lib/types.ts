@@ -57,6 +57,7 @@ export interface PlayerGameStats {
   turnovers: number;
   did_not_play: boolean;
   is_verified: boolean;
+  position?: string;
 }
 
 export interface AveragedStatLine {

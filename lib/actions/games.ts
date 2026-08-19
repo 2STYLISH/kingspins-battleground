@@ -144,6 +144,7 @@ export async function saveVerifiedGameStats(input: {
     ftm: number;
     fta: number;
     turnovers: number;
+    position?: string;
   }[];
 }) {
   const { isAdmin, user } = await requireAdmin();
@@ -170,6 +171,7 @@ export async function saveVerifiedGameStats(input: {
     fta: p.didNotPlay ? 0 : p.fta,
     turnovers: p.didNotPlay ? 0 : p.turnovers,
     is_verified: true,
+    position: p.position || null,
   }));
 
   const { error: statsError } = await supabase.from('player_game_stats').upsert(rows, { onConflict: 'game_id,player_id' });

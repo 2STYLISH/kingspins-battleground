@@ -159,6 +159,20 @@ export default async function PlayerPage({ params }: { params: { slug: string } 
   const ftPct = overallAvg?.ftPct || 0;
   const topg = gamesPlayed > 0 ? (totalTov / gamesPlayed).toFixed(1) : 0;
 
+  // Calculate Roles (Main/Secondary based on frequency)
+  const posCounts: Record<string, number> = {};
+  for (const row of stats) {
+    if (row.position) {
+      posCounts[row.position] = (posCounts[row.position] || 0) + 1;
+    }
+  }
+  const sortedPositions = Object.entries(posCounts).sort((a, b) => b[1] - a[1]);
+  const mainRole = sortedPositions[0]?.[0];
+  const secRole = sortedPositions[1]?.[0];
+  let roleDisplay = '';
+  if (mainRole && secRole) roleDisplay = `${mainRole}/${secRole}`;
+  else if (mainRole) roleDisplay = mainRole;
+
   // 3. Achievements
   const tournamentIds = currentRosters?.map(r => r.tournament_id) || [];
   let champWins: any[] = [];
@@ -226,9 +240,9 @@ export default async function PlayerPage({ params }: { params: { slug: string } 
 
               <div className="flex flex-wrap items-center gap-2 mb-4">
                 {getTierBadge(player.tier)}
-                {player.position && (
+                {(roleDisplay || player.position) && (
                   <span className="inline-block px-3 py-1 bg-surface-800 border border-surface-600 rounded-sm text-[10px] font-mono text-silver-300 uppercase tracking-widest font-bold">
-                    {player.position}
+                    {roleDisplay || player.position}
                   </span>
                 )}
               </div>
