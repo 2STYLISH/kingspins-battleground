@@ -19,7 +19,7 @@ export default function Navbar() {
   const supabase = createClient();
 
   const [isAdmin, setIsAdmin] = useState(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
 
   // Player search state
   const [query, setQuery] = useState('');
@@ -35,13 +35,13 @@ export default function Navbar() {
   useEffect(() => {
     async function verifyAuth() {
       try {
-        const { userEmail, isAdmin } = await checkAdminStatus();
-        setUserEmail(userEmail);
+        const { username, isAdmin } = await checkAdminStatus();
+        setUsername(username);
         setIsAdmin(isAdmin);
       } catch (err) {
         console.error('Navbar auth check failed:', err);
         setIsAdmin(false);
-        setUserEmail(null);
+        setUsername(null);
       }
     }
 
@@ -97,7 +97,7 @@ export default function Navbar() {
   async function handleLogout() {
     await supabase.auth.signOut();
     setIsAdmin(false);
-    setUserEmail(null);
+    setUsername(null);
     router.push('/');
     router.refresh();
   }
@@ -163,11 +163,11 @@ export default function Navbar() {
             <button
               onClick={() => setProfileOpen(!profileOpen)}
               className="w-9 h-9 rounded-full border border-surface-600 bg-surface-800 hover:border-silver-400 transition-colors flex items-center justify-center"
-              title={userEmail ?? 'Account'}
+              title={username ?? 'Account'}
             >
-              {userEmail ? (
+              {username ? (
                 <span className="text-xs font-mono text-silver-200 uppercase">
-                  {userEmail.charAt(0)}
+                  {username.charAt(0)}
                 </span>
               ) : (
                 <svg className="w-4 h-4 text-silver-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -178,11 +178,11 @@ export default function Navbar() {
 
             {profileOpen && (
               <div className="absolute right-0 top-full mt-2 w-48 bg-surface-900 border border-surface-700 rounded-xl shadow-2xl overflow-hidden z-50">
-                {userEmail ? (
+                {username ? (
                   <>
                     <div className="px-4 py-3 border-b border-surface-700">
                       <p className="text-[10px] font-mono text-silver-600 uppercase tracking-widest">Signed in as</p>
-                      <p className="text-sm text-silver-200 truncate mt-0.5">{userEmail}</p>
+                      <p className="text-sm text-silver-200 truncate mt-0.5">{username}</p>
                     </div>
                     {isAdmin && (
                       <Link

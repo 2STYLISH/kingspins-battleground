@@ -2,25 +2,27 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { loginWithUsername } from '@/lib/actions/auth';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
 
   async function handleLogin() {
     setError('');
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    
+    const result = await loginWithUsername(username, password);
+    
     setLoading(false);
-    if (error) {
-      setError(error.message);
+    if (result.error) {
+      setError(result.error);
       return;
     }
+    
     router.push('/admin');
     router.refresh();
   }
@@ -45,14 +47,14 @@ export default function LoginPage() {
         <div className="card p-7 space-y-4">
           <div>
             <label className="block text-xs font-mono text-silver-500 uppercase tracking-widest mb-1.5">
-              Email
+              Username
             </label>
             <input
-              id="login-email"
-              type="email"
-              placeholder="admin@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="login-username"
+              type="text"
+              placeholder="e.g. admin"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               onKeyDown={handleKeyDown}
               className="input-field"
             />
@@ -82,7 +84,7 @@ export default function LoginPage() {
           <button
             id="login-submit"
             onClick={handleLogin}
-            disabled={loading || !email || !password}
+            disabled={loading || !username || !password}
             className="btn-primary w-full mt-2"
           >
             {loading ? 'SIGNING IN…' : 'SIGN IN'}

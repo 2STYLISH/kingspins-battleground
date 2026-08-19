@@ -72,7 +72,7 @@ export default function TournamentAdminActions({
         disabled={deleting}
         className="text-[10px] font-mono text-crimson-500 hover:text-crimson-300 uppercase tracking-widest transition-colors"
       >
-        {deleting ? 'Deleting…' : 'Delete Tournament'}
+        {deleting ? 'Deleting…' : 'Delete'}
       </button>
     </div>
   );

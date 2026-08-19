@@ -44,9 +44,9 @@ const SECTIONS = [
     icon: '🏆',
   },
   {
-    href: '/admin/tournaments/create',
-    title: 'CREATE TOURNAMENT',
-    desc: 'Set up a new tournament — format, team count, series length.',
+    href: '/admin/tournaments',
+    title: 'MANAGE TOURNAMENTS',
+    desc: 'Manage tournament settings, change status, or create new tournaments.',
     icon: '⚙️',
   },
 ];
