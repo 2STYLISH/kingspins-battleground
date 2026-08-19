@@ -14,18 +14,18 @@ interface StatRow {
   playerId: string;
   gamertag: string;
   didNotPlay: boolean;
-  pts: number;
-  reb: number;
-  ast: number;
-  stl: number;
-  blk: number;
-  fgm: number;
-  fga: number;
-  tpm: number;
-  tpa: number;
-  ftm: number;
-  fta: number;
-  turnovers: number;
+  pts: number | '';
+  reb: number | '';
+  ast: number | '';
+  stl: number | '';
+  blk: number | '';
+  fgm: number | '';
+  fga: number | '';
+  tpm: number | '';
+  tpa: number | '';
+  ftm: number | '';
+  fta: number | '';
+  turnovers: number | '';
 }
 
 const FIELDS: (keyof Omit<StatRow, 'playerId' | 'gamertag' | 'didNotPlay'>)[] = [
@@ -63,10 +63,18 @@ function buildInitialRows(
         turnovers: existingRow.turnovers,
       };
     }
-    // Fuzzy-match AI extraction to roster by lowercased gamertag
-    const match = extractionPlayers?.find(
-      (ep) => (ep.gamertag || '').toLowerCase().trim() === (p.gamertag || '').toLowerCase().trim()
-    );
+    // Fuzzy-match AI extraction to roster by lowercased gamertag and fallback to subset matching
+    const match = extractionPlayers?.find((ep) => {
+      const epGt = (ep.gamertag || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const pGt = (p.gamertag || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+      if (epGt === pGt) return true;
+      // If OCR picked up extra characters, or missed a character, check if one contains the other
+      if (epGt.length > 2 && pGt.length > 2) {
+        if (epGt.includes(pGt) || pGt.includes(epGt)) return true;
+      }
+      return false;
+    });
     if (match) {
       return {
         playerId: p.id, gamertag: p.gamertag, didNotPlay: false,
@@ -106,7 +114,7 @@ export default function VerifyStatsForm({
   useEffect(() => {
     setHomeRows(buildInitialRows(homePlayers, extraction?.players, existingStats));
     setAwayRows(buildInitialRows(awayPlayers, extraction?.players, existingStats));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [extraction]);
 
   const extractedHomeScore = useMemo(() => {
@@ -172,8 +180,8 @@ export default function VerifyStatsForm({
         homeScore,
         awayScore,
         players: [
-          ...homeRows.map((r) => ({ playerId: r.playerId, teamId: homeTeamId, didNotPlay: r.didNotPlay, ...pick(r) })),
-          ...awayRows.map((r) => ({ playerId: r.playerId, teamId: awayTeamId, didNotPlay: r.didNotPlay, ...pick(r) })),
+          ...homeRows.map((r) => ({ playerId: r.playerId, teamId: homeTeamId, didNotPlay: r.didNotPlay, ...pickAndParse(r) })),
+          ...awayRows.map((r) => ({ playerId: r.playerId, teamId: awayTeamId, didNotPlay: r.didNotPlay, ...pickAndParse(r) })),
         ],
       });
       setConfirming(false);
@@ -275,9 +283,22 @@ export default function VerifyStatsForm({
   );
 }
 
-function pick(r: StatRow) {
+function pickAndParse(r: StatRow) {
   const { playerId, gamertag, didNotPlay, ...rest } = r;
-  return rest;
+  return {
+    pts: Number(rest.pts) || 0,
+    reb: Number(rest.reb) || 0,
+    ast: Number(rest.ast) || 0,
+    stl: Number(rest.stl) || 0,
+    blk: Number(rest.blk) || 0,
+    fgm: Number(rest.fgm) || 0,
+    fga: Number(rest.fga) || 0,
+    tpm: Number(rest.tpm) || 0,
+    tpa: Number(rest.tpa) || 0,
+    ftm: Number(rest.ftm) || 0,
+    fta: Number(rest.fta) || 0,
+    turnovers: Number(rest.turnovers) || 0,
+  };
 }
 
 function StatTable({
@@ -287,7 +308,7 @@ function StatTable({
   rows: StatRow[];
   activePlayers: number;
   onToggleDNP: (playerId: string) => void;
-  onChange: (playerId: string, field: keyof StatRow, value: number) => void;
+  onChange: (playerId: string, field: keyof StatRow, value: number | '') => void;
 }) {
   return (
     <div>
@@ -314,11 +335,10 @@ function StatTable({
             {rows.map((r) => (
               <tr
                 key={r.playerId}
-                className={`border-b border-surface-800 transition-colors ${
-                  r.didNotPlay
+                className={`border-b border-surface-800 transition-colors ${r.didNotPlay
                     ? 'opacity-40'
                     : 'hover:bg-surface-800/50'
-                }`}
+                  }`}
               >
                 <td className="py-2 pr-3 text-silver-300 font-body whitespace-nowrap">
                   {r.gamertag}
@@ -327,11 +347,10 @@ function StatTable({
                 <td className="px-2 py-1 text-center">
                   <button
                     onClick={() => onToggleDNP(r.playerId)}
-                    className={`text-[10px] font-mono px-2 py-0.5 rounded border transition-colors ${
-                      r.didNotPlay
+                    className={`text-[10px] font-mono px-2 py-0.5 rounded border transition-colors ${r.didNotPlay
                         ? 'border-surface-500 text-silver-600 bg-surface-800'
                         : 'border-surface-600 text-silver-400 hover:border-white hover:text-white'
-                    }`}
+                      }`}
                   >
                     {r.didNotPlay ? 'DNP' : 'PLAYED'}
                   </button>
@@ -340,9 +359,9 @@ function StatTable({
                   <td key={f} className="px-1 py-1">
                     <input
                       type="number"
-                      value={r[f] as number}
+                      value={r[f] as number | ''}
                       disabled={r.didNotPlay}
-                      onChange={(e) => onChange(r.playerId, f, Number(e.target.value))}
+                      onChange={(e) => onChange(r.playerId, f, e.target.value === '' ? '' : Number(e.target.value))}
                       className="w-12 bg-surface-900 border border-surface-600 rounded px-1 py-0.5 text-right text-silver-200 focus:outline-none focus:ring-1 focus:ring-silver-500 disabled:opacity-30 disabled:cursor-not-allowed"
                     />
                   </td>
