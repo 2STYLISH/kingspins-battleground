@@ -27,7 +27,7 @@ export interface ParseResult {
 
 export async function parseGameScreenshot(imageBase64: string): Promise<ParseResult> {
   const apiKey = process.env.AI_PROVIDER_API_KEY;
-  const model = process.env.AI_PROVIDER_MODEL || 'gemini-2.5-flash';
+  const model = process.env.AI_PROVIDER_MODEL || 'gemini-3.6-flash';
 
   if (!apiKey) {
     console.error('[screenshot-parser] AI_PROVIDER_API_KEY is not set in .env');
