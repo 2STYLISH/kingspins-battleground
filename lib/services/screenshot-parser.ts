@@ -131,29 +131,51 @@ export async function parseGameScreenshot(imageBase64: string): Promise<ParseRes
 
     while (true) {
       const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
+      if (value) {
+        buffer += decoder.decode(value, { stream: true });
+        buffer = buffer.replace(/\r\n/g, '\n');
+      }
 
-      // SSE events are separated by a blank line; process complete ones.
+      // Process complete events
       let sepIndex: number;
       while ((sepIndex = buffer.indexOf('\n\n')) !== -1) {
         const rawEvent = buffer.slice(0, sepIndex);
         buffer = buffer.slice(sepIndex + 2);
 
         const dataLine = rawEvent.split('\n').find((line) => line.startsWith('data:'));
-        if (!dataLine) continue;
-        const jsonStr = dataLine.slice(5).trim();
-        if (!jsonStr || jsonStr === '[DONE]') continue;
-
-        try {
-          const chunk = JSON.parse(jsonStr);
-          sawAnyChunk = true;
-          const piece = chunk?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (piece) text += piece;
-          if (chunk?.promptFeedback?.blockReason) blockReason = chunk.promptFeedback.blockReason;
-        } catch {
-          // Ignore a single malformed SSE chunk rather than failing the whole stream.
+        if (dataLine) {
+          const jsonStr = dataLine.slice(5).trim();
+          if (jsonStr && jsonStr !== '[DONE]') {
+            try {
+              const chunk = JSON.parse(jsonStr);
+              sawAnyChunk = true;
+              const piece = chunk?.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (piece) text += piece;
+              if (chunk?.promptFeedback?.blockReason) blockReason = chunk.promptFeedback.blockReason;
+            } catch {
+              // Ignore malformed chunk
+            }
+          }
         }
+      }
+
+      if (done) {
+        // Handle any remaining data that didn't end with \n\n
+        if (buffer.trim()) {
+          const dataLine = buffer.split('\n').find((line) => line.startsWith('data:'));
+          if (dataLine) {
+            const jsonStr = dataLine.slice(5).trim();
+            if (jsonStr && jsonStr !== '[DONE]') {
+              try {
+                const chunk = JSON.parse(jsonStr);
+                sawAnyChunk = true;
+                const piece = chunk?.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (piece) text += piece;
+              } catch {}
+            }
+          }
+        }
+        break;
       }
     }
   } catch (streamErr: any) {
