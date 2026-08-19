@@ -6,6 +6,8 @@ import BackButton from '@/components/BackButton';
 import ManualStatsButton from '@/components/admin/ManualStatsButton';
 import { formatDate, formatTime } from '@/lib/format';
 
+export const maxDuration = 60;
+
 export default async function AdminGameDetailPage({ params }: { params: { scheduleId: string } }) {
   const supabase = createClient();
 
