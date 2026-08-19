@@ -10,6 +10,9 @@ const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' });
 export const metadata: Metadata = {
   title: 'KINGPINS BATTLEGROUND',
   description: 'NBA 2K Pro-Am league — stats, brackets, schedules, awards.',
+  icons: {
+    icon: '/logo.png',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

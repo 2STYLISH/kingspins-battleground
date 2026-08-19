@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
@@ -108,8 +109,8 @@ export default function Navbar() {
 
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 group shrink-0">
-          <div className="w-8 h-8 rounded-full border border-surface-600 bg-surface-800 flex items-center justify-center group-hover:border-silver-400 transition-colors">
-            <span className="font-display text-xs text-silver-200">KP</span>
+          <div className="relative w-10 h-10 rounded-full overflow-hidden border border-surface-600 bg-surface-800 flex items-center justify-center group-hover:border-silver-400 transition-colors">
+            <Image src="/logo.png" alt="Kingpins Logo" fill className="object-cover" />
           </div>
           <span className="font-display text-lg tracking-[0.2em] text-white hidden sm:block">
             KINGPINS <span className="text-silver-400">BATTLEGROUND</span>
