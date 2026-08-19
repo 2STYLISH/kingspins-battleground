@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { createTeam, deleteTeam, assignPlayerToTournamentTeam, removePlayerFromTournamentTeam, updateTeamLogo } from '@/lib/actions/teams';
 import { updateTournamentLogo } from '@/lib/actions/tournaments';
+import { uploadFileBypassingRLS } from '@/lib/actions/upload';
 
 interface Tournament {
   id: string;
@@ -72,12 +73,13 @@ export default function TeamsManager({
     try {
       const ext = file.name.split('.').pop();
       const path = `${activeTournament}.${ext}`;
-      const supabase = createClient();
-      const { error: uploadError } = await supabase.storage.from('tournament-logos').upload(path, file, { upsert: true });
-      if (uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage.from('tournament-logos').getPublicUrl(path);
-      const publicUrl = urlData.publicUrl + `?t=${Date.now()}`;
-      await updateTournamentLogo(activeTournament, publicUrl);
+      
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const publicUrl = await uploadFileBypassingRLS(formData, 'tournament-logos', path);
+      
+      await updateTournamentLogo(activeTournament, publicUrl + `?t=${Date.now()}`);
       router.refresh();
     } catch (err: any) {
       alert('Upload failed: ' + (err.message || 'Unknown error'));
@@ -220,15 +222,15 @@ function TeamCard({ team, roster, tournamentId, unassignedPlayers }: { team: Tea
     try {
       const ext = file.name.split('.').pop();
       const path = `${team.id}.${ext}`;
-      const { error: uploadError } = await supabase.storage
-        .from('team-logos')
-        .upload(path, file, { upsert: true });
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage.from('team-logos').getPublicUrl(path);
-      const publicUrl = urlData.publicUrl + `?t=${Date.now()}`; // cache bust
-      await updateTeamLogo(team.id, urlData.publicUrl);
-      setLogoUrl(publicUrl);
+      
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const publicUrl = await uploadFileBypassingRLS(formData, 'team-logos', path);
+      
+      const cacheBustedUrl = publicUrl + `?t=${Date.now()}`;
+      await updateTeamLogo(team.id, cacheBustedUrl);
+      setLogoUrl(cacheBustedUrl);
       router.refresh();
     } catch (err: any) {
       alert('Upload failed: ' + (err?.message ?? 'Unknown error'));

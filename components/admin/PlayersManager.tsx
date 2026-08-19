@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { createPlayer, deletePlayer, updatePlayerTier, updatePlayerName } from '@/lib/actions/teams';
 import { updatePlayerPhoto } from '@/lib/actions/players';
+import { uploadFileBypassingRLS } from '@/lib/actions/upload';
 
 interface Player {
   id: string;
@@ -71,19 +72,13 @@ export default function PlayersManager({ players }: { players: Player[] }) {
   async function handleUploadPhoto(playerId: string, file: File) {
     setBusy(true);
     try {
-      const supabase = createClient();
       const ext = file.name.split('.').pop();
       const fileName = `${playerId}-${Date.now()}.${ext}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('player-photos')
-        .upload(fileName, file, { upsert: true });
+      const formData = new FormData();
+      formData.append('file', file);
 
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('player-photos')
-        .getPublicUrl(fileName);
+      const publicUrl = await uploadFileBypassingRLS(formData, 'player-photos', fileName);
 
       await updatePlayerPhoto(playerId, publicUrl);
       router.refresh();

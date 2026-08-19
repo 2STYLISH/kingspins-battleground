@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { deleteTournament, updateTournamentChampionshipName, updateTournamentLogo } from '@/lib/actions/tournaments';
+import { uploadFileBypassingRLS } from '@/lib/actions/upload';
 
 export default function TournamentAdminActions({
   tournamentId,
@@ -60,15 +61,15 @@ export default function TournamentAdminActions({
     try {
       const ext = file.name.split('.').pop();
       const path = `${tournamentId}.${ext}`;
-      const { error: uploadError } = await supabase.storage
-        .from('tournament-logos')
-        .upload(path, file, { upsert: true });
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage.from('tournament-logos').getPublicUrl(path);
-      const publicUrl = urlData.publicUrl + `?t=${Date.now()}`;
-      await updateTournamentLogo(tournamentId, publicUrl);
-      setLogoUrl(publicUrl);
+      
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const publicUrl = await uploadFileBypassingRLS(formData, 'tournament-logos', path);
+      
+      const cacheBustedUrl = publicUrl + `?t=${Date.now()}`;
+      await updateTournamentLogo(tournamentId, cacheBustedUrl);
+      setLogoUrl(cacheBustedUrl);
       router.refresh();
     } catch (err: any) {
       alert('Upload failed: ' + (err?.message ?? 'Unknown error'));
