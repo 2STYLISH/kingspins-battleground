@@ -2,7 +2,7 @@
 
 import { useRouter, usePathname } from 'next/navigation';
 
-export default function AdminBackButton() {
+export default function BackButton() {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -10,7 +10,7 @@ export default function AdminBackButton() {
     if (typeof window !== 'undefined' && window.history.length > 1) {
       router.back();
     } else {
-      router.push(pathname === '/admin' ? '/' : '/admin');
+      router.push(pathname.startsWith('/admin') ? '/admin' : '/');
     }
   }
 

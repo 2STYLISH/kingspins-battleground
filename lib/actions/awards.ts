@@ -55,7 +55,10 @@ export async function finalizeAward(input: {
     metadata: { award_type: input.awardType, winner_player_id: input.winnerPlayerId },
   });
 
+  revalidatePath('/admin/awards');
   revalidatePath(`/admin/awards/${input.awardType}`);
+  revalidatePath('/awards');
+  revalidatePath('/');
 }
 
 /**
@@ -78,6 +81,8 @@ export async function publishAward(awardId: string, awardType: string) {
     target_id: awardId,
   });
 
+  revalidatePath('/admin/awards');
   revalidatePath(`/admin/awards/${awardType}`);
   revalidatePath('/awards');
+  revalidatePath('/');
 }

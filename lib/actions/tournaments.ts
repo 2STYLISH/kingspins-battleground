@@ -39,6 +39,36 @@ export async function createTournament(input: {
   return tournament.id as string;
 }
 
+export async function deleteTournament(tournamentId: string) {
+  const { isAdmin } = await requireAdmin();
+  if (!isAdmin) throw new Error('Admin authentication required.');
+
+  const supabase = createClient();
+  // Cascade deletes bracket_matchups, schedules, awards, seeds, rosters via FK
+  const { error } = await supabase.from('tournaments').delete().eq('id', tournamentId);
+  if (error) throw error;
+
+  revalidatePath('/admin/tournaments');
+  revalidatePath('/admin/bracket');
+  revalidatePath('/tournaments');
+  revalidatePath('/');
+}
+
+export async function updateTournamentChampionshipName(tournamentId: string, name: string) {
+  const { isAdmin } = await requireAdmin();
+  if (!isAdmin) throw new Error('Admin authentication required.');
+
+  const supabase = createClient();
+  const { error } = await supabase
+    .from('tournaments')
+    .update({ championship_award_name: name || null })
+    .eq('id', tournamentId);
+  if (error) throw error;
+
+  revalidatePath('/admin/tournaments');
+  revalidatePath('/awards');
+}
+
 export async function updateTournamentStatus(tournamentId: string, status: 'DRAFT' | 'SEEDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED') {
   const { isAdmin } = await requireAdmin();
   if (!isAdmin) throw new Error('Admin authentication required.');

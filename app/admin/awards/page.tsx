@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
-import AdminBackButton from '@/components/admin/AdminBackButton';
+import BackButton from '@/components/BackButton';
 
 const AWARD_TYPES = [
   'BEST_PG', 'BEST_SG', 'BEST_SF', 'BEST_PF', 'BEST_CENTER',
@@ -41,7 +41,7 @@ export default async function AdminAwardsPage({ searchParams }: { searchParams: 
 
   return (
     <div className="space-y-6">
-      <AdminBackButton />
+      <BackButton />
       <div className="pb-6 border-b border-surface-700">
         <h1 className="text-4xl text-white mb-2">AWARDS</h1>
         <p className="text-sm text-silver-500 mb-6">

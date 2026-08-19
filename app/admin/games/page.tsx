@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
-import AdminBackButton from '@/components/admin/AdminBackButton';
+import BackButton from '@/components/BackButton';
 import { formatDate, formatTime } from '@/lib/format';
 
 const STATUS_STYLES: Record<string, string> = {
@@ -28,7 +28,7 @@ export default async function AdminGamesPage() {
 
   return (
     <div className="space-y-4">
-      <AdminBackButton />
+      <BackButton />
       <div className="mb-8 pb-6 border-b border-surface-700">
         <h1 className="text-4xl text-white mb-1">GAMES & SCREENSHOTS</h1>
         <p className="text-silver-500 text-sm">

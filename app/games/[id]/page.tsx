@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
+import { getTierBadge } from '@/lib/utils';
+import BackButton from '@/components/BackButton';
 import Link from 'next/link';
 
 export default async function GameBoxScorePage({ params }: { params: { id: string } }) {
@@ -12,8 +14,8 @@ export default async function GameBoxScorePage({ params }: { params: { id: strin
       schedule_id,
       home_score,
       away_score,
-      home_team:teams!games_home_team_id_fkey(id, name, short_name),
-      away_team:teams!games_away_team_id_fkey(id, name, short_name),
+      home_team:teams!games_home_team_id_fkey(id, name, short_name, logo_url),
+      away_team:teams!games_away_team_id_fkey(id, name, short_name, logo_url),
       schedules!inner(tournament_id, round_label, status, scheduled_date)
     `)
     .eq('id', params.id)
@@ -145,59 +147,34 @@ export default async function GameBoxScorePage({ params }: { params: { id: strin
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-
+      <BackButton />
+      
       {/* Top Scoreboard */}
       <div className="card p-6 md:p-10 bg-gradient-to-b from-surface-900 to-surface-950">
         <div className="flex flex-col md:flex-row items-center justify-between gap-10">
 
           {/* Home Team */}
           <div className="flex-1 text-center md:text-left flex flex-col items-center md:items-start">
-            <div className="w-16 h-16 rounded-xl bg-surface-800 border border-surface-600 mb-4 flex items-center justify-center">
-              <span className="text-xl text-silver-400 font-display">{(game.home_team as any)?.name?.slice(0, 3).toUpperCase()}</span>
+            <div className="w-16 h-16 rounded-xl bg-surface-800 border border-surface-600 mb-4 flex items-center justify-center overflow-hidden">
+              {(game.home_team as any)?.logo_url ? (
+                <img src={(game.home_team as any).logo_url} alt={(game.home_team as any).name} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-xl text-silver-400 font-display">{(game.home_team as any)?.name?.slice(0, 3).toUpperCase()}</span>
+              )}
             </div>
             <h1 className="text-2xl md:text-3xl font-display tracking-widest text-white uppercase">{(game.home_team as any)?.name}</h1>
             <p className="text-6xl md:text-7xl font-display text-silver-300 mt-2">{game.home_score ?? '-'}</p>
           </div>
 
-          {/* Quarter Scores */}
-          <div className="flex-shrink-0 bg-surface-950 border border-surface-800 rounded-xl overflow-hidden shadow-2xl">
-            <table className="text-xs text-center font-mono">
-              <thead>
-                <tr className="border-b border-surface-800 text-silver-600 uppercase tracking-widest">
-                  <th className="px-4 py-3 text-left font-normal border-r border-surface-800">Team</th>
-                  <th className="px-4 py-3 font-normal">1ST</th>
-                  <th className="px-4 py-3 font-normal">2ND</th>
-                  <th className="px-4 py-3 font-normal">3RD</th>
-                  <th className="px-4 py-3 font-normal">4TH</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b border-surface-800">
-                  <td className="px-4 py-3 text-left text-silver-400 font-semibold border-r border-surface-800 uppercase">
-                    {(game.home_team as any)?.name?.slice(0, 3)}
-                  </td>
-                  <td className="px-4 py-3 text-white">{quarterScores?.find(q => q.quarter === 1)?.home_score ?? '-'}</td>
-                  <td className="px-4 py-3 text-white">{quarterScores?.find(q => q.quarter === 2)?.home_score ?? '-'}</td>
-                  <td className="px-4 py-3 text-white">{quarterScores?.find(q => q.quarter === 3)?.home_score ?? '-'}</td>
-                  <td className="px-4 py-3 text-white">{quarterScores?.find(q => q.quarter === 4)?.home_score ?? '-'}</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 text-left text-silver-400 font-semibold border-r border-surface-800 uppercase">
-                    {(game.away_team as any)?.name?.slice(0, 3)}
-                  </td>
-                  <td className="px-4 py-3 text-white">{quarterScores?.find(q => q.quarter === 1)?.away_score ?? '-'}</td>
-                  <td className="px-4 py-3 text-white">{quarterScores?.find(q => q.quarter === 2)?.away_score ?? '-'}</td>
-                  <td className="px-4 py-3 text-white">{quarterScores?.find(q => q.quarter === 3)?.away_score ?? '-'}</td>
-                  <td className="px-4 py-3 text-white">{quarterScores?.find(q => q.quarter === 4)?.away_score ?? '-'}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
 
           {/* Away Team */}
           <div className="flex-1 text-center md:text-right flex flex-col items-center md:items-end">
-            <div className="w-16 h-16 rounded-xl bg-surface-800 border border-surface-600 mb-4 flex items-center justify-center">
-              <span className="text-xl text-silver-400 font-display">{(game.away_team as any)?.name?.slice(0, 3).toUpperCase()}</span>
+            <div className="w-16 h-16 rounded-xl bg-surface-800 border border-surface-600 mb-4 flex items-center justify-center overflow-hidden">
+              {(game.away_team as any)?.logo_url ? (
+                <img src={(game.away_team as any).logo_url} alt={(game.away_team as any).name} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-xl text-silver-400 font-display">{(game.away_team as any)?.name?.slice(0, 3).toUpperCase()}</span>
+              )}
             </div>
             <h1 className="text-2xl md:text-3xl font-display tracking-widest text-white uppercase">{(game.away_team as any)?.name}</h1>
             <p className="text-6xl md:text-7xl font-display text-white mt-2 drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]">{game.away_score ?? '-'}</p>

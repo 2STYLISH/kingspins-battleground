@@ -4,7 +4,7 @@ import StandingsTable from '@/components/StandingsTable';
 import BracketSeeder from '@/components/admin/BracketSeeder';
 import SwissGenerator from '@/components/admin/SwissGenerator';
 import Link from 'next/link';
-import AdminBackButton from '@/components/admin/AdminBackButton';
+import BackButton from '@/components/BackButton';
 
 export default async function AdminBracketPage({
   searchParams,
@@ -46,7 +46,7 @@ export default async function AdminBracketPage({
 
   return (
     <div className="space-y-8">
-      <AdminBackButton />
+      <BackButton />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl text-bone">BRACKET MANAGEMENT</h1>

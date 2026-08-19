@@ -26,13 +26,20 @@ export default function FinalizeAwardForm({
   const [publishNotes, setPublishNotes] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [saved, setSaved] = useState(false);
 
   const winnerName = candidates.find((c) => c.id === winnerId)?.gamertag ?? '';
 
   async function handleConfirm() {
     setSaving(true);
+    setError('');
     try {
       await finalizeAward({ awardType, awardId, tournamentId, winnerPlayerId: winnerId, notes, publishNotes });
+      setConfirming(false);
+      setSaved(true);
+    } catch (e: any) {
+      setError(e?.message ?? 'Something went wrong. Please try again.');
       setConfirming(false);
     } finally {
       setSaving(false);
@@ -81,6 +88,15 @@ export default function FinalizeAwardForm({
       >
         SAVE FINAL AWARD
       </button>
+
+      {saved && (
+        <p className="text-emerald-400 text-sm font-mono">✓ Award saved successfully.</p>
+      )}
+      {error && (
+        <div className="bg-red-950/40 border border-red-800/60 rounded-lg px-3 py-2">
+          <p className="text-red-400 text-sm font-mono">⚠ {error}</p>
+        </div>
+      )}
 
       {/* Confirm modal */}
       {confirming && (

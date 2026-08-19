@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { createTeam, deleteTeam, createPlayer, assignPlayerToTournamentTeam, removePlayerFromTournamentTeam, updatePlayerTier } from '@/lib/actions/teams';
+import { createClient } from '@/lib/supabase/client';
+import { createTeam, deleteTeam, assignPlayerToTournamentTeam, removePlayerFromTournamentTeam, updateTeamLogo } from '@/lib/actions/teams';
 
 interface Tournament {
   id: string;
@@ -15,6 +17,7 @@ interface Team {
   name: string;
   short_name: string | null;
   tournament_id: string;
+  logo_url: string | null;
 }
 
 interface Player {
@@ -125,9 +128,12 @@ export default function TeamsManager({
 
 function TeamCard({ team, roster, tournamentId, unassignedPlayers }: { team: Team; roster: Player[]; tournamentId: string; unassignedPlayers: Player[] }) {
   const router = useRouter();
-  const [gamertag, setGamertag] = useState('');
+  const supabase = createClient();
   const [busy, setBusy] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [logoUrl, setLogoUrl] = useState(team.logo_url ?? '');
+
   async function handleAddExistingPlayer() {
     if (!searchQuery) return;
     const player = unassignedPlayers.find((p) => p.gamertag === searchQuery);
@@ -154,13 +160,60 @@ function TeamCard({ team, roster, tournamentId, unassignedPlayers }: { team: Tea
     router.refresh();
   }
 
-  const filteredPlayers = unassignedPlayers.filter(p => p.gamertag.toLowerCase().includes(searchQuery.toLowerCase()));
+  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert('Logo must be under 2MB');
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `${team.id}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from('team-logos')
+        .upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from('team-logos').getPublicUrl(path);
+      const publicUrl = urlData.publicUrl + `?t=${Date.now()}`; // cache bust
+      await updateTeamLogo(team.id, urlData.publicUrl);
+      setLogoUrl(publicUrl);
+      router.refresh();
+    } catch (err: any) {
+      alert('Upload failed: ' + (err?.message ?? 'Unknown error'));
+    } finally {
+      setUploading(false);
+    }
+  }
 
   return (
     <div className="card p-5 flex flex-col">
       {/* Team header */}
       <div className="flex items-center justify-between mb-4 pb-3 border-b border-surface-700">
-        <p className="text-base text-white font-display tracking-widest">{team.name}</p>
+        <div className="flex items-center gap-3">
+          {/* Logo preview / upload */}
+          <label className="relative cursor-pointer group" title="Click to upload logo">
+            <div className="w-10 h-10 rounded-lg bg-surface-800 border border-surface-600 group-hover:border-silver-400 transition-colors overflow-hidden flex items-center justify-center">
+              {logoUrl ? (
+                <img src={logoUrl} alt={team.name} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-[10px] font-mono text-silver-500 group-hover:text-silver-300 transition-colors">
+                  {uploading ? '…' : 'LOGO'}
+                </span>
+              )}
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleLogoUpload}
+              disabled={uploading}
+              className="sr-only"
+            />
+          </label>
+          <p className="text-base text-white font-display tracking-widest">{team.name}</p>
+        </div>
         <button onClick={handleDeleteTeam} className="text-xs text-silver-600 hover:text-silver-300 transition-colors font-mono">
           DELETE TEAM
         </button>

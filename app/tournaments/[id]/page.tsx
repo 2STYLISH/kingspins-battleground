@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import BracketTree from '@/components/BracketTree';
+import BackButton from '@/components/BackButton';
 import { notFound } from 'next/navigation';
 import { formatDate } from '@/lib/format';
 import { averageStats } from '@/lib/stats';
@@ -86,6 +87,7 @@ export default async function TournamentDashboard({ params }: { params: { id: st
 
   return (
     <div className="space-y-10">
+      <BackButton />
       <div>
         <p className="text-xs font-mono text-crimson-400 uppercase">{tournament.status}</p>
         <h1 className="text-4xl text-bone">{tournament.name}</h1>

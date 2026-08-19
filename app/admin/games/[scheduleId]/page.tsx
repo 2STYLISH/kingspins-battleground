@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import ScreenshotUploadPanel from '@/components/admin/ScreenshotUploadPanel';
 import VerifyStatsForm from '@/components/admin/VerifyStatsForm';
-import AdminBackButton from '@/components/admin/AdminBackButton';
+import BackButton from '@/components/BackButton';
 import ManualStatsButton from '@/components/admin/ManualStatsButton';
 import { formatDate, formatTime } from '@/lib/format';
 
@@ -52,7 +52,7 @@ export default async function AdminGameDetailPage({ params }: { params: { schedu
 
   return (
     <div className="space-y-8">
-      <AdminBackButton />
+      <BackButton />
 
       {/* Game header */}
       <div>

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import BackButton from '@/components/BackButton';
 
 export default async function MatchupDetailPage({ params }: { params: { matchupId: string } }) {
   const supabase = createClient();
@@ -34,6 +35,7 @@ export default async function MatchupDetailPage({ params }: { params: { matchupI
 
   return (
     <div className="space-y-6">
+      <BackButton />
       <div>
         <p className="text-xs font-mono text-mute uppercase">{(matchup.tournament as any)?.name}</p>
         <h1 className="text-4xl text-bone mt-1">
@@ -87,10 +89,6 @@ export default async function MatchupDetailPage({ params }: { params: { matchupI
           </div>
         </>
       )}
-
-      <Link href="/bracket" className="text-sm text-gold hover:underline inline-block">
-        ← Back to full bracket
-      </Link>
     </div>
   );
 }

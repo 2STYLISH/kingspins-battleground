@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import PlayersManager from '@/components/admin/PlayersManager';
-import AdminBackButton from '@/components/admin/AdminBackButton';
+import BackButton from '@/components/BackButton';
 
 export default async function AdminPlayersPage() {
   const supabase = createClient();
@@ -8,7 +8,7 @@ export default async function AdminPlayersPage() {
 
   return (
     <div className="space-y-4">
-      <AdminBackButton />
+      <BackButton />
       <div>
         <h1 className="text-4xl text-bone mb-1">GLOBAL PLAYER REGISTRY</h1>
         <p className="text-mute text-sm mb-8">

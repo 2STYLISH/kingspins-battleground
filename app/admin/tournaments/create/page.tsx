@@ -1,10 +1,10 @@
 import CreateTournamentForm from '@/components/admin/CreateTournamentForm';
-import AdminBackButton from '@/components/admin/AdminBackButton';
+import BackButton from '@/components/BackButton';
 
 export default function CreateTournamentPage() {
   return (
     <div className="space-y-6">
-      <AdminBackButton />
+      <BackButton />
       <div>
         <h1 className="text-4xl text-bone">CREATE TOURNAMENT</h1>
         <p className="text-mute text-sm mt-1">

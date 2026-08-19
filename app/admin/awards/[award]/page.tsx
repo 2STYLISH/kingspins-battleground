@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
-import AdminBackButton from '@/components/admin/AdminBackButton';
+import BackButton from '@/components/BackButton';
 import PublishAwardButton from '@/components/admin/PublishAwardButton';
 import FinalizeAwardForm from '@/components/admin/FinalizeAwardForm';
 
@@ -55,7 +55,7 @@ export default async function AdminAwardDetailPage({ params, searchParams }: { p
 
   return (
     <div className="space-y-8">
-      <AdminBackButton />
+      <BackButton />
 
       {/* Header */}
       <div className="pb-6 border-b border-surface-700">

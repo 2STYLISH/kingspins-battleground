@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { averageStats } from '@/lib/stats';
 import type { PlayerGameStats } from '@/lib/types';
-import AdminBackButton from '@/components/admin/AdminBackButton';
+import BackButton from '@/components/BackButton';
 import TournamentFilter from '@/components/TournamentFilter';
 
 export const metadata = {
@@ -70,7 +70,7 @@ export default async function AdminStatsPage({ searchParams }: { searchParams: {
 
   return (
     <div className="space-y-10">
-      <AdminBackButton />
+      <BackButton />
 
       {/* Header */}
       <div className="pb-6 border-b border-surface-700">

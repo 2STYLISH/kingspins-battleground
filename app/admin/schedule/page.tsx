@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import CreateGameForm from '@/components/admin/CreateGameForm';
 import ScheduleManager from '@/components/admin/ScheduleManager';
-import AdminBackButton from '@/components/admin/AdminBackButton';
+import BackButton from '@/components/BackButton';
 
 export default async function AdminSchedulePage() {
   const supabase = createClient();
@@ -32,7 +32,7 @@ export default async function AdminSchedulePage() {
 
   return (
     <div className="space-y-8">
-      <AdminBackButton />
+      <BackButton />
       <div>
         <h1 className="text-4xl text-bone">ADMIN SCHEDULE</h1>
         <p className="text-mute text-sm mt-1">Create, reschedule, and manage games across the season.</p>

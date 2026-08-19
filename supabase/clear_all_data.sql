@@ -28,7 +28,7 @@ DELETE FROM tournament_seeds;
 DELETE FROM tournament_rosters;
 DELETE FROM tournaments;
 -- DELETE FROM players;   -- uncomment to also wipe players
--- DELETE FROM teams;     -- uncomment to also wipe teams
+DELETE FROM teams;     -- uncomment to also wipe teams
 -- DELETE FROM seasons;   -- uncomment to wipe seasons (will break active season ref)
 -- DELETE FROM profiles;  -- ⚠️ DO NOT do this unless you want to lose your admin account
 

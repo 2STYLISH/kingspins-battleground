@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
+import BackButton from '@/components/BackButton';
 import { averageStats } from '@/lib/stats';
 import type { PlayerGameStats } from '@/lib/types';
 
@@ -107,7 +108,7 @@ export default async function PlayerPage({ params, searchParams }: { params: { s
   // Achievements — championships + awards
   const { data: championships } = await supabase
     .from('championships')
-    .select('tournament_id, champion_team_id, runner_up_team_id, tournament:tournaments(name)')
+    .select('tournament_id, champion_team_id, runner_up_team_id, tournament:tournaments(name, championship_award_name)')
     .or(`champion_team_id.eq.${team?.id ?? 'null'},runner_up_team_id.eq.${team?.id ?? 'null'}`);
 
   const { data: awards } = await supabase
@@ -136,6 +137,7 @@ export default async function PlayerPage({ params, searchParams }: { params: { s
 
   return (
     <div className="space-y-8">
+      <BackButton />
       {/* Header */}
       <div>
         <div className="flex flex-wrap items-center gap-4 mt-4 mb-2">
@@ -351,7 +353,9 @@ export default async function PlayerPage({ params, searchParams }: { params: { s
                     <span className="text-2xl">🏆</span>
                     <div>
                       <p className="text-white font-display tracking-widest">{c.tournament?.name ?? 'Tournament'}</p>
-                      <p className="text-[10px] font-mono text-gold uppercase tracking-widest mt-0.5">Champion</p>
+                      <p className="text-[10px] font-mono text-gold uppercase tracking-widest mt-0.5">
+                        {c.tournament?.championship_award_name ?? 'Champion'}
+                      </p>
                     </div>
                   </div>
                 ))}
