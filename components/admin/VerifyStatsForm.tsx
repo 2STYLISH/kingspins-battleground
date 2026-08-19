@@ -66,7 +66,7 @@ function buildInitialRows(
     }
     // Fuzzy-match AI extraction to roster by lowercased gamertag
     const match = extractionPlayers?.find(
-      (ep) => ep.gamertag?.toLowerCase().trim() === p.gamertag.toLowerCase().trim()
+      (ep) => (ep.gamertag || '').toLowerCase().trim() === (p.gamertag || '').toLowerCase().trim()
     );
     if (match) {
       return {
@@ -112,7 +112,7 @@ export default function VerifyStatsForm({
 
   const extractedHomeScore = useMemo(() => {
     if (!extraction?.teams) return 0;
-    const match = extraction.teams.find(t => t.name.toLowerCase().includes(homeTeamName.toLowerCase().slice(0, 3)));
+    const match = extraction.teams.find(t => (t.name || '').toLowerCase().includes((homeTeamName || '').toLowerCase().slice(0, 3)));
     if (match) return match.score;
     // fallback if no clear match
     return extraction.teams[0]?.score ?? 0;
@@ -120,7 +120,7 @@ export default function VerifyStatsForm({
 
   const extractedAwayScore = useMemo(() => {
     if (!extraction?.teams) return 0;
-    const match = extraction.teams.find(t => t.name.toLowerCase().includes(awayTeamName.toLowerCase().slice(0, 3)));
+    const match = extraction.teams.find(t => (t.name || '').toLowerCase().includes((awayTeamName || '').toLowerCase().slice(0, 3)));
     if (match) return match.score;
     // fallback if no clear match
     return extraction.teams[1]?.score ?? 0;
