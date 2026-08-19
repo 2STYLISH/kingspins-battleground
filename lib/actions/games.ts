@@ -1,6 +1,7 @@
 'use server';
 
 export const maxDuration = 60;
+
 import { createClient, requireAdmin } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { parseGameScreenshot } from '@/lib/services/screenshot-parser';

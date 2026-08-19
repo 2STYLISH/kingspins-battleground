@@ -3,13 +3,15 @@ import { createClient } from '@/lib/supabase/server';
 import BackButton from '@/components/BackButton';
 import { formatDate, formatTime } from '@/lib/format';
 
+export const maxDuration = 60;
+
 const STATUS_STYLES: Record<string, string> = {
-  SCHEDULED:        'text-silver-600 bg-surface-800',
-  LIVE:             'text-white bg-surface-700',
-  AWAITING_STATS:   'text-silver-400 bg-surface-800',
+  SCHEDULED: 'text-silver-600 bg-surface-800',
+  LIVE: 'text-white bg-surface-700',
+  AWAITING_STATS: 'text-silver-400 bg-surface-800',
   STATS_UNDER_REVIEW: 'text-silver-300 bg-surface-700',
-  VERIFIED:         'text-white bg-surface-700',
-  COMPLETED:        'text-silver-400 bg-surface-800',
+  VERIFIED: 'text-white bg-surface-700',
+  COMPLETED: 'text-silver-400 bg-surface-800',
 };
 
 export default async function AdminGamesPage() {
