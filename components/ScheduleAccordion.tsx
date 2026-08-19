@@ -72,11 +72,11 @@ export default function ScheduleAccordion({
                   );
 
                   return isComplete ? (
-                    <Link key={g.id} href={`/games/${gameId}`} className="block p-4 border border-surface-700 bg-surface-900 hover:border-red-600 transition-colors rounded">
+                    <Link key={g.id} href={`/games/${gameId}`} className="block p-4 border border-surface-700 bg-[#080808]/90 backdrop-blur-sm shadow-lg hover:border-red-600 transition-colors rounded">
                       {CardContent}
                     </Link>
                   ) : (
-                    <div key={g.id} className="block p-4 border border-surface-700 bg-surface-900 rounded">
+                    <div key={g.id} className="block p-4 border border-surface-700 bg-[#080808]/90 backdrop-blur-sm shadow-lg rounded">
                       {CardContent}
                     </div>
                   );

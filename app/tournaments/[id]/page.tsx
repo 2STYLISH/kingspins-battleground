@@ -1,6 +1,8 @@
+export const dynamic = 'force-dynamic';
 import { createClient } from '@/lib/supabase/server';
 import Link from '@/components/HiddenLink';
 import BracketTree from '@/components/BracketTree';
+import MatchesFilter from '@/components/MatchesFilter';
 import BackButton from '@/components/BackButton';
 import { notFound } from 'next/navigation';
 import { formatDate } from '@/lib/format';
@@ -85,6 +87,22 @@ export default async function TournamentDashboard({ params }: { params: { id: st
 
   const champ = championship as any;
 
+  const completedByRound = new Map<string, any[]>();
+  console.log("Tournament ID:", tournament.id);
+  console.log("Completed matches count:", completed?.length);
+  (completed ?? []).forEach((g: any) => {
+    const r = g.round_label || 'OTHER';
+    if (!completedByRound.has(r)) completedByRound.set(r, []);
+    completedByRound.get(r)!.push(g);
+  });
+
+  const upcomingByRound = new Map<string, any[]>();
+  (upcoming ?? []).forEach((g: any) => {
+    const r = g.round_label || 'OTHER';
+    if (!upcomingByRound.has(r)) upcomingByRound.set(r, []);
+    upcomingByRound.get(r)!.push(g);
+  });
+
   return (
     <div className="space-y-10">
       <BackButton />
@@ -128,30 +146,18 @@ export default async function TournamentDashboard({ params }: { params: { id: st
 
         <div>
           <h2 className="text-xl font-display text-white tracking-widest mb-3">UPCOMING MATCHES</h2>
-          <div className="border border-surface-700 bg-[#080808]/90 backdrop-blur-sm p-4 space-y-2 rounded shadow-lg">
-            {(upcoming ?? []).map((g: any) => (
-              <p key={g.id} className="text-sm font-mono text-white">{g.home?.name} <span className="text-silver-600 mx-1">VS</span> {g.away?.name} — <span className="text-[#b8860b]">{formatDate(g.scheduled_date)}</span></p>
-            ))}
-            {(upcoming ?? []).length === 0 && <p className="text-silver-600 text-sm font-mono uppercase tracking-widest">Nothing scheduled.</p>}
-          </div>
+          <MatchesFilter 
+            rounds={[...upcomingByRound.entries()].map(([roundName, games]) => ({ roundName, games }))}
+            isUpcoming={true}
+          />
         </div>
       </section>
 
       <section>
         <h2 className="text-xl font-display text-white tracking-widest mb-3">COMPLETED MATCHES</h2>
-        <div className="border border-surface-700 bg-[#080808]/90 backdrop-blur-sm p-4 space-y-2 rounded shadow-lg">
-          {(completed ?? []).map((g: any) => {
-            const gameId = g.games?.[0]?.id;
-            return gameId ? (
-              <Link key={g.id} href={`/games/${gameId}`} className="block text-sm font-mono text-silver-300 hover:text-red-600 hover:underline transition-colors">
-                {g.home?.name} <span className="text-silver-600 mx-1">VS</span> {g.away?.name} — <span className="text-silver-500">{g.round_label}</span>
-              </Link>
-            ) : (
-              <p key={g.id} className="text-sm font-mono text-silver-300">{g.home?.name} <span className="text-silver-600 mx-1">VS</span> {g.away?.name} — <span className="text-silver-500">{g.round_label}</span></p>
-            );
-          })}
-          {(completed ?? []).length === 0 && <p className="text-silver-600 text-sm font-mono uppercase tracking-widest">No results yet.</p>}
-        </div>
+        <MatchesFilter 
+          rounds={[...completedByRound.entries()].map(([roundName, games]) => ({ roundName, games }))}
+        />
       </section>
 
       {/* Player Stats */}

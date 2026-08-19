@@ -8,6 +8,7 @@ export default async function SchedulePage({ searchParams }: { searchParams: { f
   let query = supabase
     .from('schedules')
     .select('id, scheduled_date, scheduled_time, game_type, round_label, status, tournament_id, tournament:tournaments(name, status), home:teams!schedules_home_team_id_fkey(name), away:teams!schedules_away_team_id_fkey(name), games(id)')
+    .eq('is_archived', false)
     .order('scheduled_date', { ascending: true })
     .order('scheduled_time', { ascending: true });
 
@@ -85,8 +86,8 @@ export default async function SchedulePage({ searchParams }: { searchParams: { f
       </div>
 
       {(games ?? []).length === 0 && (
-        <div className="border border-surface-700 bg-[#080808] rounded p-8 text-center">
-          <p className="text-silver-500 font-mono text-sm uppercase">No games scheduled for this filter.</p>
+        <div className="border border-surface-700 bg-[#080808]/90 backdrop-blur-sm shadow-lg rounded p-8 text-center">
+          <p className="text-silver-500 font-mono text-sm uppercase tracking-widest">No games scheduled for this filter.</p>
         </div>
       )}
 

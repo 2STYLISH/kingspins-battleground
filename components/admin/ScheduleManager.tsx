@@ -14,8 +14,12 @@ const STATUS_STYLES: Record<string, string> = {
 
 export default function ScheduleManager({ games }: { games: any[] }) {
   const [search, setSearch] = useState('');
+  const [tab, setTab] = useState<'ACTIVE' | 'ARCHIVED'>('ACTIVE');
 
   const filtered = games.filter((g) => {
+    if (tab === 'ACTIVE' && g.is_archived) return false;
+    if (tab === 'ARCHIVED' && !g.is_archived) return false;
+
     if (!search.trim()) return true;
     const q = search.toLowerCase();
     return (
@@ -27,18 +31,37 @@ export default function ScheduleManager({ games }: { games: any[] }) {
   });
 
   return (
-    <div className="space-y-3">
-      <input
-        type="text"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="Filter by team, tournament, or round…"
-        className="w-full bg-surface-900 border border-surface-600 rounded-lg px-3 py-2 text-silver-200 placeholder-silver-700 text-sm focus:outline-none focus:ring-1 focus:ring-silver-400 transition-colors"
-      />
-      {filtered.length === 0 && <p className="text-silver-600 text-sm">No games found.</p>}
-      {filtered.map((g) => (
-        <GameRow key={g.id} game={g} />
-      ))}
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
+        <div className="flex gap-2">
+          <button 
+            onClick={() => setTab('ACTIVE')}
+            className={`px-3 py-1.5 text-xs font-mono uppercase tracking-widest rounded transition-colors ${tab === 'ACTIVE' ? 'bg-[#b8860b]/20 text-[#b8860b] border border-[#b8860b]/50' : 'bg-surface-800 text-silver-500 hover:text-white border border-surface-600'}`}
+          >
+            Active
+          </button>
+          <button 
+            onClick={() => setTab('ARCHIVED')}
+            className={`px-3 py-1.5 text-xs font-mono uppercase tracking-widest rounded transition-colors ${tab === 'ARCHIVED' ? 'bg-[#b8860b]/20 text-[#b8860b] border border-[#b8860b]/50' : 'bg-surface-800 text-silver-500 hover:text-white border border-surface-600'}`}
+          >
+            Archived
+          </button>
+        </div>
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Filter by team, tournament, or round…"
+          className="w-full sm:w-64 bg-surface-900 border border-surface-600 rounded-lg px-3 py-1.5 text-silver-200 placeholder-silver-700 text-sm focus:outline-none focus:ring-1 focus:ring-silver-400 transition-colors"
+        />
+      </div>
+      
+      <div className="space-y-3">
+        {filtered.length === 0 && <p className="text-silver-600 text-sm">No games found.</p>}
+        {filtered.map((g) => (
+          <GameRow key={g.id} game={g} />
+        ))}
+      </div>
     </div>
   );
 }
@@ -70,6 +93,16 @@ function GameRow({ game }: { game: any }) {
         roundLabel: roundLabel || undefined,
         status: status as any,
       });
+      setEditing(false);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleToggleArchive() {
+    setBusy(true);
+    try {
+      await updateSchedule(game.id, { isArchived: !game.is_archived });
       setEditing(false);
     } finally {
       setBusy(false);
@@ -129,9 +162,14 @@ function GameRow({ game }: { game: any }) {
         </div>
 
         <div className="flex justify-between items-center pt-2">
-          <button onClick={handleDelete} disabled={busy} className="text-xs text-crimson-400 hover:text-crimson-300 font-mono">
-            DELETE
-          </button>
+          <div className="flex gap-4">
+            <button onClick={handleDelete} disabled={busy} className="text-xs text-crimson-400 hover:text-crimson-300 font-mono">
+              DELETE
+            </button>
+            <button onClick={handleToggleArchive} disabled={busy} className="text-xs text-silver-400 hover:text-white font-mono">
+              {game.is_archived ? 'UNARCHIVE' : 'ARCHIVE'}
+            </button>
+          </div>
           <div className="flex gap-2">
             <button onClick={() => setEditing(false)} disabled={busy} className="btn-secondary py-1.5 text-xs">CANCEL</button>
             <button onClick={handleSave} disabled={busy} className="btn-primary py-1.5 text-xs">SAVE</button>

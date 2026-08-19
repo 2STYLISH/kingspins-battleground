@@ -11,6 +11,7 @@ export default async function HomePage() {
       .from('schedules')
       .select('id, scheduled_date, scheduled_time, round_label, game_type, home_team_id, away_team_id, status, home:teams!schedules_home_team_id_fkey(name, logo_url), away:teams!schedules_away_team_id_fkey(name, logo_url)')
       .eq('status', 'SCHEDULED')
+      .eq('is_archived', false)
       .order('scheduled_date', { ascending: true })
       .limit(3),
     supabase.from('awards').select('id, award_type, winner_player_id').eq('status', 'PUBLISHED').limit(3),

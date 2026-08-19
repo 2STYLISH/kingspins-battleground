@@ -107,7 +107,7 @@ function BracketSection({ title, matchups, onMatchupClick }: { title: string; ma
 
           return (
             <div key={round} className="flex flex-col justify-around gap-6 min-w-[220px]">
-              <p className="text-xs font-mono text-silver-400 uppercase tracking-widest mb-2">
+              <p className="text-xs font-mono text-white uppercase tracking-widest mb-2 font-semibold">
                 {label}
               </p>
             {matchups
@@ -142,13 +142,13 @@ function MatchCard({ matchup, onClick }: { matchup: Matchup; onClick?: (m: Match
 
   return (
     <div className="relative">
-      <div className="absolute -left-6 top-1/2 -translate-y-1/2 text-[10px] font-mono text-silver-600">{matchup.matchNumber}</div>
+      <div className="absolute -left-6 top-1/2 -translate-y-1/2 text-[10px] font-mono text-silver-300 font-bold">{matchup.matchNumber}</div>
       {onClick ? (
         <button onClick={() => onClick(matchup)} className="w-full text-left border border-surface-700 bg-[#080808]/90 backdrop-blur-sm p-3 block hover:border-gold transition-colors rounded shadow-lg cursor-pointer">
           {innerContent}
         </button>
       ) : (
-        <a href={href} className="border border-surface-700 bg-[#080808]/90 backdrop-blur-sm p-3 block hover:border-red-600 transition-colors rounded shadow-lg">
+        <a href={href} className="border border-surface-700 bg-[#080808]/90 backdrop-blur-sm p-3 block hover:border-emerald-600 transition-colors rounded shadow-lg">
           {innerContent}
         </a>
       )}
@@ -161,7 +161,7 @@ function TeamRow({ name, isWinner, isByePlaceholder, placeholderText }: { name?:
     return <p className="text-sm text-silver-600 italic">BYE</p>;
   }
   return (
-    <p className={`text-sm truncate ${isWinner ? 'text-red-600 font-semibold drop-shadow-[0_0_10px_rgba(229,0,0,0.5)]' : 'text-white'} ${!name ? 'text-silver-600 italic text-[13px]' : ''}`}>
+    <p className={`text-sm truncate ${isWinner ? 'text-emerald-500 font-semibold drop-shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'text-white'} ${!name ? 'text-silver-600 italic text-[13px]' : ''}`}>
       {name ?? placeholderText ?? 'TBD'}
     </p>
   );

@@ -265,7 +265,7 @@ export default async function StatsPage({ searchParams }: { searchParams: { tab?
       )}
 
       {teamMap.size === 0 && (
-        <div className="border border-surface-700 bg-surface-950 p-8 text-center rounded">
+        <div className="border border-surface-700 bg-[#080808]/90 backdrop-blur-sm shadow-lg p-8 text-center rounded">
           <p className="text-silver-600 font-mono uppercase tracking-widest text-sm">No player stats yet for this tournament.</p>
         </div>
       )}

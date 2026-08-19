@@ -64,7 +64,7 @@ export default async function PublicAwardsPage({ searchParams }: { searchParams:
       {!activeTournamentId ? (
         <p className="text-silver-500 text-sm">No tournaments found.</p>
       ) : (awards ?? []).length === 0 ? (
-        <div className="border border-surface-700 bg-[#080808] rounded p-10 text-center shadow-lg">
+        <div className="border border-surface-700 bg-[#080808]/90 backdrop-blur-sm rounded p-10 text-center shadow-lg">
           <p className="text-silver-600 text-sm font-mono uppercase tracking-widest">
             No awards published yet for this tournament. Admins are reviewing candidates.
           </p>

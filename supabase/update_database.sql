@@ -83,3 +83,6 @@ ALTER TABLE awards ADD CONSTRAINT awards_award_type_check check (
 ALTER TABLE tournament_seeds ADD COLUMN IF NOT EXISTS manual_wins int;
 ALTER TABLE tournament_seeds ADD COLUMN IF NOT EXISTS manual_losses int;
 ALTER TABLE tournament_seeds ADD COLUMN IF NOT EXISTS point_differential int;
+
+-- 16. Add is_archived to schedules
+ALTER TABLE schedules ADD COLUMN IF NOT EXISTS is_archived boolean DEFAULT false;

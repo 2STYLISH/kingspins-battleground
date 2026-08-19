@@ -22,10 +22,13 @@ export default async function AdminGamesPage() {
     .select(
       'id, scheduled_date, scheduled_time, game_type, round_label, status, home:teams!schedules_home_team_id_fkey(id,name), away:teams!schedules_away_team_id_fkey(id,name)'
     )
+    .eq('is_archived', false)
     .order('scheduled_date', { ascending: false })
     .limit(50);
 
-  const { data: games } = await supabase.from('games').select('id, schedule_id, status');
+  const { data: games } = await supabase
+    .from('games')
+    .select('id, schedule_id, status');
   const gameBySchedule = new Map((games ?? []).map((g) => [g.schedule_id, g]));
 
   return (

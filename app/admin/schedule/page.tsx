@@ -15,7 +15,7 @@ export default async function AdminSchedulePage() {
       .order('team_id'),
     supabase
       .from('schedules')
-      .select('id, scheduled_date, scheduled_time, status, game_type, round_label, tournament:tournaments(name), home:teams!schedules_home_team_id_fkey(name), away:teams!schedules_away_team_id_fkey(name)')
+      .select('id, scheduled_date, scheduled_time, status, game_type, round_label, is_archived, tournament:tournaments(name), home:teams!schedules_home_team_id_fkey(name), away:teams!schedules_away_team_id_fkey(name)')
       .order('scheduled_date', { ascending: true }),
   ]);
 

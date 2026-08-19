@@ -52,6 +52,7 @@ export async function updateSchedule(scheduleId: string, input: {
   gameType?: 'REGULAR' | 'PLAYOFF' | 'TOURNAMENT' | 'EXHIBITION';
   roundLabel?: string;
   status?: 'SCHEDULED' | 'LIVE' | 'COMPLETED' | 'POSTPONED' | 'CANCELLED';
+  isArchived?: boolean;
 }) {
   const { isAdmin } = await requireAdmin();
   if (!isAdmin) throw new Error('Admin authentication required.');
@@ -59,11 +60,12 @@ export async function updateSchedule(scheduleId: string, input: {
   const supabase = createClient();
   
   const payload: any = {};
-  if (input.scheduledDate !== undefined) payload.scheduled_date = input.scheduledDate;
-  if (input.scheduledTime !== undefined) payload.scheduled_time = input.scheduledTime;
+  if (input.scheduledDate !== undefined) payload.scheduled_date = input.scheduledDate || null;
+  if (input.scheduledTime !== undefined) payload.scheduled_time = input.scheduledTime || null;
   if (input.gameType !== undefined) payload.game_type = input.gameType;
   if (input.roundLabel !== undefined) payload.round_label = input.roundLabel;
   if (input.status !== undefined) payload.status = input.status;
+  if (input.isArchived !== undefined) payload.is_archived = input.isArchived;
 
   const { error } = await supabase.from('schedules').update(payload).eq('id', scheduleId);
   if (error) throw error;
