@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { randomizeBracket } from '@/lib/actions/tournaments';
+import { randomizeBracket, resetBracketSeeding } from '@/lib/actions/tournaments';
 
 export default function BracketSeeder({ 
   tournamentId, 
@@ -40,13 +40,28 @@ export default function BracketSeeder({
             Automatically shuffle all registered teams into the bracket slots.
           </p>
         </div>
-        <button 
-          onClick={handleRandomize} 
-          disabled={busy || rosterIds.length === 0} 
-          className="btn-primary py-2 px-6"
-        >
-          {busy ? 'RANDOMIZING...' : 'RANDOMIZE BRACKET'}
-        </button>
+        <div className="flex gap-3">
+          <button 
+            onClick={async () => {
+              if (!confirm('This will wipe all matchups and return all teams to the available pool. Are you sure?')) return;
+              setBusy(true);
+              try { await resetBracketSeeding(tournamentId); }
+              catch (err: any) { alert(err.message || 'Failed to reset bracket'); }
+              finally { setBusy(false); }
+            }}
+            disabled={busy || seededIds.length === 0} 
+            className="btn-secondary py-2 px-6"
+          >
+            RESET SEEDING
+          </button>
+          <button 
+            onClick={handleRandomize} 
+            disabled={busy || rosterIds.length === 0} 
+            className="btn-primary py-2 px-6"
+          >
+            {busy ? 'RANDOMIZING...' : 'RANDOMIZE BRACKET'}
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-6">

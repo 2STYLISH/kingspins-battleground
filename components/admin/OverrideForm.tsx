@@ -9,10 +9,12 @@ type Matchup = { id: string; round: number; slot: number; status: string; team_a
 const selectCls = 'w-full bg-surface-900 border border-surface-600 rounded-lg px-3 py-2 text-silver-200 focus:outline-none focus:ring-1 focus:ring-silver-400 transition-colors';
 const labelCls = 'block text-[10px] text-silver-600 uppercase font-mono tracking-widest mb-1.5';
 
-export default function OverrideForm({ matchups }: { matchups: Matchup[] }) {
+export default function OverrideForm({ matchups, allTeams = [] }: { matchups: Matchup[]; allTeams?: Team[] }) {
   const [matchupId, setMatchupId] = useState('');
-  const [action, setAction] = useState<'ADVANCE_TEAM' | 'CHANGE_WINNER' | 'RESET_MATCHUP'>('ADVANCE_TEAM');
+  const [action, setAction] = useState<'ADVANCE_TEAM' | 'CHANGE_WINNER' | 'RESET_MATCHUP' | 'ASSIGN_TEAMS'>('ADVANCE_TEAM');
   const [winnerTeamId, setWinnerTeamId] = useState('');
+  const [assignTeamA, setAssignTeamA] = useState('');
+  const [assignTeamB, setAssignTeamB] = useState('');
   const [reason, setReason] = useState('');
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
@@ -22,7 +24,14 @@ export default function OverrideForm({ matchups }: { matchups: Matchup[] }) {
   async function handleSubmit() {
     setSaving(true);
     try {
-      await overrideBracketMatchup({ matchupId, action, winnerTeamId: winnerTeamId || undefined, reason });
+      await overrideBracketMatchup({ 
+        matchupId, 
+        action: action as any, 
+        winnerTeamId: winnerTeamId || undefined, 
+        teamAId: assignTeamA || undefined,
+        teamBId: assignTeamB || undefined,
+        reason 
+      });
       setDone(true);
       setReason('');
     } finally {
@@ -49,11 +58,12 @@ export default function OverrideForm({ matchups }: { matchups: Matchup[] }) {
         <select value={action} onChange={(e) => setAction(e.target.value as any)} className={selectCls}>
           <option value="ADVANCE_TEAM">Advance a team</option>
           <option value="CHANGE_WINNER">Change series winner</option>
+          <option value="ASSIGN_TEAMS">Manually assign teams (Seeding)</option>
           <option value="RESET_MATCHUP">Reset matchup</option>
         </select>
       </div>
 
-      {action !== 'RESET_MATCHUP' && matchup && (
+      {(action === 'ADVANCE_TEAM' || action === 'CHANGE_WINNER') && matchup && (
         <div>
           <label className={labelCls}>Winning Team</label>
           <select value={winnerTeamId} onChange={(e) => setWinnerTeamId(e.target.value)} className={selectCls}>
@@ -61,6 +71,29 @@ export default function OverrideForm({ matchups }: { matchups: Matchup[] }) {
             {matchup.team_a && <option value={matchup.team_a.id}>{matchup.team_a.name}</option>}
             {matchup.team_b && <option value={matchup.team_b.id}>{matchup.team_b.name}</option>}
           </select>
+        </div>
+      )}
+
+      {action === 'ASSIGN_TEAMS' && matchup && (
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className={labelCls}>Slot 1 (Top)</label>
+            <select value={assignTeamA} onChange={(e) => setAssignTeamA(e.target.value)} className={selectCls}>
+              <option value="">— select team —</option>
+              {allTeams.map((t) => (
+                <option key={t?.id} value={t?.id}>{t?.name}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className={labelCls}>Slot 2 (Bottom)</label>
+            <select value={assignTeamB} onChange={(e) => setAssignTeamB(e.target.value)} className={selectCls}>
+              <option value="">— select team —</option>
+              {allTeams.map((t) => (
+                <option key={t?.id} value={t?.id}>{t?.name}</option>
+              ))}
+            </select>
+          </div>
         </div>
       )}
 

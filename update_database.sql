@@ -9,14 +9,14 @@ ALTER TABLE bracket_matchups ADD CONSTRAINT bracket_matchups_tournament_id_round
 
 -- 3. Update bracket_side allowed values (fixes Round Robin crashes)
 ALTER TABLE bracket_matchups DROP CONSTRAINT IF EXISTS bracket_matchups_bracket_side_check;
-ALTER TABLE bracket_matchups ADD CONSTRAINT bracket_matchups_bracket_side_check check (bracket_side in ('WINNERS', 'LOSERS', 'GRAND_FINAL', 'ROUND_ROBIN', 'SWISS'));
+ALTER TABLE bracket_matchups ADD CONSTRAINT bracket_matchups_bracket_side_check check (bracket_side in ('WINNERS', 'LOSERS', 'GRAND_FINAL', 'ROUND_ROBIN', 'SWISS', 'PLAY_IN'));
 
 -- 4. Clean up any test KOTC tournaments before applying the new constraint
 UPDATE tournaments SET format = 'DOUBLE_ELIM' WHERE format = 'KOTC';
 
 -- 5. Update tournament formats allowed values (fixes creation of KOTC, Round Robin, etc)
 ALTER TABLE tournaments DROP CONSTRAINT IF EXISTS tournaments_format_check;
-ALTER TABLE tournaments ADD CONSTRAINT tournaments_format_check check (format in ('SINGLE_ELIM', 'DOUBLE_ELIM', 'ROUND_ROBIN', 'SWISS', 'FREE_FOR_ALL', 'LEADERBOARD'));
+ALTER TABLE tournaments ADD CONSTRAINT tournaments_format_check check (format in ('SINGLE_ELIM', 'DOUBLE_ELIM', 'ROUND_ROBIN', 'SWISS', 'FREE_FOR_ALL', 'LEADERBOARD', 'PLAYOFFS'));
 
 -- 6. Add ON DELETE CASCADE to schedules table so tournaments can be deleted
 ALTER TABLE schedules DROP CONSTRAINT IF EXISTS schedules_tournament_id_fkey;
@@ -78,3 +78,8 @@ ALTER TABLE awards DROP CONSTRAINT IF EXISTS awards_award_type_check;
 ALTER TABLE awards ADD CONSTRAINT awards_award_type_check check (
   award_type in ('BEST_PG', 'BEST_SG', 'BEST_SF', 'BEST_PF', 'BEST_CENTER', 'FINALS_MVP', 'OVERALL_MVP', 'OVERALL_DPOY')
 );
+
+-- 15. Add manual stats to tournament_seeds
+ALTER TABLE tournament_seeds ADD COLUMN IF NOT EXISTS manual_wins int;
+ALTER TABLE tournament_seeds ADD COLUMN IF NOT EXISTS manual_losses int;
+ALTER TABLE tournament_seeds ADD COLUMN IF NOT EXISTS point_differential int;

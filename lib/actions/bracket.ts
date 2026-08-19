@@ -11,8 +11,10 @@ import { ensureScheduleForMatchup } from './bracket-scheduling';
  */
 export async function overrideBracketMatchup(input: {
   matchupId: string;
-  action: 'ADVANCE_TEAM' | 'CHANGE_WINNER' | 'RESET_MATCHUP' | 'CHANGE_SEED';
+  action: 'ADVANCE_TEAM' | 'CHANGE_WINNER' | 'RESET_MATCHUP' | 'CHANGE_SEED' | 'ASSIGN_TEAMS';
   winnerTeamId?: string;
+  teamAId?: string;
+  teamBId?: string;
   reason: string;
 }) {
   const { isAdmin, user } = await requireAdmin();
@@ -23,6 +25,18 @@ export async function overrideBracketMatchup(input: {
 
   if (input.action === 'RESET_MATCHUP') {
     await supabase.from('bracket_matchups').update({ winner_id: null, status: 'PENDING' }).eq('id', input.matchupId);
+  } else if (input.action === 'ASSIGN_TEAMS') {
+    const payload: any = { status: 'PENDING' };
+    if (input.teamAId) payload.team_a_id = input.teamAId;
+    if (input.teamBId) payload.team_b_id = input.teamBId;
+    
+    await supabase.from('bracket_matchups').update(payload).eq('id', input.matchupId);
+    
+    // Check if we need to create a schedule if both teams are now present
+    const { data: matchup } = await supabase.from('bracket_matchups').select('tournament_id').eq('id', input.matchupId).single();
+    if (matchup?.tournament_id && input.teamAId && input.teamBId) {
+      await ensureScheduleForMatchup(supabase, matchup.tournament_id, input.matchupId);
+    }
   } else if ((input.action === 'ADVANCE_TEAM' || input.action === 'CHANGE_WINNER') && input.winnerTeamId) {
     const { data: matchup } = await supabase
       .from('bracket_matchups')
@@ -142,7 +156,7 @@ export async function overrideBracketMatchup(input: {
     target_type: 'bracket_matchup',
     target_id: input.matchupId,
     reason: input.reason,
-    metadata: { winnerTeamId: input.winnerTeamId ?? null },
+    metadata: { winnerTeamId: input.winnerTeamId ?? null, teamAId: input.teamAId ?? null, teamBId: input.teamBId ?? null },
   });
 
   revalidatePath('/admin/bracket');

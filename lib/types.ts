@@ -21,7 +21,7 @@ export type GameStatus =
 export type ScheduleStatus = 'SCHEDULED' | 'LIVE' | 'COMPLETED' | 'POSTPONED' | 'CANCELLED';
 export type GameType = 'REGULAR' | 'PLAYOFF' | 'TOURNAMENT' | 'EXHIBITION';
 export type MatchFormat = 'BO1' | 'BO3' | 'BO5' | 'BO7';
-export type TournamentFormat = 'SINGLE_ELIM' | 'DOUBLE_ELIM';
+export type TournamentFormat = 'SINGLE_ELIM' | 'DOUBLE_ELIM' | 'ROUND_ROBIN' | 'LEADERBOARD' | 'SWISS' | 'PLAYOFFS';
 export type BracketMatchupStatus = 'PENDING' | 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED';
 
 export interface Team {

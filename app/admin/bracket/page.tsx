@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
-import BracketTree from '@/components/BracketTree';
+import AdminInteractiveBracket from '@/components/admin/AdminInteractiveBracket';
 import StandingsTable from '@/components/StandingsTable';
 import BracketSeeder from '@/components/admin/BracketSeeder';
+import SeedEditor from '@/components/admin/SeedEditor';
 import SwissGenerator from '@/components/admin/SwissGenerator';
 import Link from '@/components/HiddenLink';
 import BackButton from '@/components/BackButton';
@@ -40,7 +41,7 @@ export default async function AdminBracketPage({
     ? await supabase.from('tournament_rosters').select('team_id').eq('tournament_id', active.id)
     : { data: [] };
   const { data: seeds } = active
-    ? await supabase.from('tournament_seeds').select('team_id').eq('tournament_id', active.id)
+    ? await supabase.from('tournament_seeds').select('*').eq('tournament_id', active.id)
     : { data: [] };
 
   const rosterIds = (rosters ?? []).map((r) => r.team_id);
@@ -88,43 +89,30 @@ export default async function AdminBracketPage({
             <p className="text-bone">{active.name}</p>
             <p className="text-xs font-mono text-gold uppercase">{active.status}</p>
           </div>
-          <BracketSeeder 
-            tournamentId={active.id} 
-            teams={teams ?? []}
-            rosterIds={rosterIds}
-            seededIds={seededIds}
-          />
+          {active.format === 'PLAYOFFS' && (
+            <SeedEditor 
+              tournamentId={active.id} 
+              teams={teams ?? []}
+              seeds={seeds ?? []}
+            />
+          )}
 
           {(active.format === 'ROUND_ROBIN' || active.format === 'LEADERBOARD') ? (
-            <StandingsTable matchups={(matchups ?? []) as any} teams={teams ?? []} />
+            <StandingsTable matchups={(matchups ?? []) as any} teams={teams ?? []} seeds={seeds ?? []} />
           ) : active.format === 'SWISS' ? (
             <>
-              <StandingsTable matchups={(matchups ?? []) as any} teams={teams ?? []} />
+              <StandingsTable matchups={(matchups ?? []) as any} teams={teams ?? []} seeds={seeds ?? []} />
               <div className="mt-8">
-                <BracketTree matchups={(matchups ?? []) as any} />
+                <AdminInteractiveBracket matchups={(matchups ?? []) as any} teams={(teams ?? []) as any} />
               </div>
             </>
           ) : (
-            <BracketTree matchups={(matchups ?? []) as any} />
+            <AdminInteractiveBracket matchups={(matchups ?? []) as any} teams={(teams ?? []) as any} />
           )}
 
           {active.format === 'SWISS' && active.status === 'IN_PROGRESS' && (
             <SwissGenerator tournamentId={active.id} />
           )}
-
-          <div className="card p-5 border-crimson/40">
-            <h2 className="text-lg text-bone mb-2">ADMIN OVERRIDE</h2>
-            <p className="text-sm text-mute mb-3">
-              Manually change a matchup, seed, or series winner. Every override is written to the audit log
-              with your admin ID, the action taken, and a required reason.
-            </p>
-            <Link
-              href="/admin/bracket/override"
-              className="inline-block px-4 py-2 border border-crimson text-crimson-400 rounded-md text-sm hover:bg-crimson/10"
-            >
-              OPEN OVERRIDE TOOL
-            </Link>
-          </div>
         </>
       )}
     </div>

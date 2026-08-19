@@ -10,7 +10,7 @@ const labelCls = 'block text-[10px] text-silver-600 uppercase font-mono tracking
 
 export default function CreateTournamentForm() {
   const [name, setName] = useState('');
-  const [format, setFormat] = useState<'SINGLE_ELIM' | 'DOUBLE_ELIM'>('SINGLE_ELIM');
+  const [format, setFormat] = useState<'SINGLE_ELIM' | 'DOUBLE_ELIM' | 'PLAYOFFS'>('SINGLE_ELIM');
   const [numTeams, setNumTeams] = useState(8);
   const [matchFormat, setMatchFormat] = useState<'BO1' | 'BO3' | 'BO5' | 'BO7'>('BO3');
   const [startDate, setStartDate] = useState('');
@@ -47,6 +47,7 @@ export default function CreateTournamentForm() {
           <select value={format} onChange={(e) => setFormat(e.target.value as any)} className={inputCls}>
             <option value="SINGLE_ELIM">Single Elimination</option>
             <option value="DOUBLE_ELIM">Double Elimination</option>
+            <option value="PLAYOFFS">Playoffs (10-Team)</option>
             <option value="ROUND_ROBIN">Round Robin</option>
             <option value="SWISS">Swiss</option>
             <option value="FREE_FOR_ALL">Free For All</option>
@@ -66,15 +67,25 @@ export default function CreateTournamentForm() {
         </div>
       </div>
 
-      <div>
-        <label className={labelCls}>Match Format (Series)</label>
-        <select value={matchFormat} onChange={(e) => setMatchFormat(e.target.value as any)} className={inputCls}>
-          <option value="BO1">Best of 1</option>
-          <option value="BO3">Best of 3</option>
-          <option value="BO5">Best of 5</option>
-          <option value="BO7">Best of 7</option>
-        </select>
-      </div>
+      {format !== 'PLAYOFFS' && (
+        <div>
+          <label className={labelCls}>Match Format (Series)</label>
+          <select value={matchFormat} onChange={(e) => setMatchFormat(e.target.value as any)} className={inputCls}>
+            <option value="BO1">Best of 1</option>
+            <option value="BO3">Best of 3</option>
+            <option value="BO5">Best of 5</option>
+            <option value="BO7">Best of 7</option>
+          </select>
+        </div>
+      )}
+
+      {format === 'PLAYOFFS' && (
+        <div className="bg-surface-800 p-3 rounded-lg border border-surface-600">
+          <p className="text-xs text-silver-300">
+            <span className="text-gold font-bold">MATCH FORMAT:</span> Play-ins are hardcoded to <strong>Best of 1</strong>. Playoffs are hardcoded to <strong>Best of 3</strong>.
+          </p>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         <div>

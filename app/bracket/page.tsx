@@ -23,6 +23,10 @@ export default async function PublicBracketPage() {
 
   const { data: teams } = await supabase.from('teams').select('id, name').order('name');
 
+  const { data: seeds } = tournament
+    ? await supabase.from('tournament_seeds').select('*').eq('tournament_id', tournament.id)
+    : { data: [] };
+
   return (
     <div>
       <h1 className="text-4xl text-bone mb-1">{tournament?.name ?? 'BRACKET'}</h1>
@@ -32,10 +36,10 @@ export default async function PublicBracketPage() {
       {!tournament ? (
         <p className="card p-6 text-mute text-sm">No active tournament bracket yet.</p>
       ) : tournament.format === 'ROUND_ROBIN' || tournament.format === 'LEADERBOARD' ? (
-        <StandingsTable matchups={(matchups ?? []) as any} teams={teams ?? []} />
+        <StandingsTable matchups={(matchups ?? []) as any} teams={teams ?? []} seeds={seeds ?? []} />
       ) : tournament.format === 'SWISS' ? (
         <>
-          <StandingsTable matchups={(matchups ?? []) as any} teams={teams ?? []} />
+          <StandingsTable matchups={(matchups ?? []) as any} teams={teams ?? []} seeds={seeds ?? []} />
           <div className="mt-8">
             <BracketTree matchups={(matchups ?? []) as any} />
           </div>
