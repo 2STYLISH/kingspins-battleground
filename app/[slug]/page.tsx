@@ -89,11 +89,16 @@ export default async function PlayerPage({ params }: { params: { slug: string } 
 
   const stats = (statsRaw ?? [])
     .filter(r => !r.did_not_play)
-    .sort((a, b) => {
-      const dateA = a.game?.schedule?.scheduled_date || '1970-01-01';
-      const timeA = a.game?.schedule?.scheduled_time || '00:00:00';
-      const dateB = b.game?.schedule?.scheduled_date || '1970-01-01';
-      const timeB = b.game?.schedule?.scheduled_time || '00:00:00';
+    .sort((a: any, b: any) => {
+      const gameA = Array.isArray(a.game) ? a.game[0] : a.game;
+      const gameB = Array.isArray(b.game) ? b.game[0] : b.game;
+      const schedA = Array.isArray(gameA?.schedule) ? gameA.schedule[0] : gameA?.schedule;
+      const schedB = Array.isArray(gameB?.schedule) ? gameB.schedule[0] : gameB?.schedule;
+      
+      const dateA = schedA?.scheduled_date || '1970-01-01';
+      const timeA = schedA?.scheduled_time || '00:00:00';
+      const dateB = schedB?.scheduled_date || '1970-01-01';
+      const timeB = schedB?.scheduled_time || '00:00:00';
       const dtA = new Date(`${dateA}T${timeA}`).getTime();
       const dtB = new Date(`${dateB}T${timeB}`).getTime();
       return dtB - dtA;
@@ -134,7 +139,7 @@ export default async function PlayerPage({ params }: { params: { slug: string } 
     totalFtm += row.ftm || 0;
     totalFta += row.fta || 0;
 
-    const game = row.game;
+    const game = Array.isArray(row.game) ? row.game[0] : row.game;
     if (game && row.team_id) {
       const isHome = game.home_team_id === row.team_id;
       const myScore = isHome ? game.home_score : game.away_score;
@@ -419,11 +424,18 @@ export default async function PlayerPage({ params }: { params: { slug: string } 
             <div className="space-y-2">
               {recentGames.length === 0 && <p className="text-silver-600 text-sm font-mono">No games found.</p>}
               {recentGames.map((row, idx) => {
-                const game = row.game;
+                const game = Array.isArray(row.game) ? row.game[0] : row.game;
+                if (!game) return null;
+                const schedule = Array.isArray(game.schedule) ? game.schedule[0] : game.schedule;
+                const tournament = Array.isArray(schedule?.tournament) ? schedule.tournament[0] : schedule?.tournament;
+                
+                const homeTeam = Array.isArray(game.home) ? game.home[0] : game.home;
+                const awayTeam = Array.isArray(game.away) ? game.away[0] : game.away;
+                
                 const isHome = game.home_team_id === row.team_id;
                 const myScore = isHome ? game.home_score : game.away_score;
                 const oppScore = isHome ? game.away_score : game.home_score;
-                const oppName = isHome ? game.away?.name : game.home?.name;
+                const oppName = isHome ? awayTeam?.name : homeTeam?.name;
                 const didWin = myScore > oppScore;
 
                 return (
@@ -434,7 +446,7 @@ export default async function PlayerPage({ params }: { params: { slug: string } 
                       </div>
                       <div>
                         <p className="text-sm font-display tracking-widest text-white group-hover:text-gold transition-colors uppercase">{oppName || 'TBD'}</p>
-                        <p className="text-[9px] font-mono text-silver-500 uppercase">{game.schedule?.tournament?.name} / {formatDate(game.schedule?.scheduled_date)}</p>
+                        <p className="text-[9px] font-mono text-silver-500 uppercase">{tournament?.name} / {formatDate(schedule?.scheduled_date)}</p>
                       </div>
                     </div>
                     <div className="mt-2 sm:mt-0 flex items-center gap-4">
@@ -571,19 +583,31 @@ function HighCard({ label, val, row, playerTeamId }: { label: string, val: numbe
     </div>
   );
 
-  const game = row.game;
+  const game = Array.isArray(row.game) ? row.game[0] : row.game;
+  if (!game) return (
+    <div className="border border-surface-700 bg-surface-900 p-4 rounded">
+      <p className="text-[9px] font-mono text-silver-600 uppercase mb-1">{label}</p>
+      <p className="text-2xl font-mono text-white mb-2">{val}</p>
+    </div>
+  );
+
+  const schedule = Array.isArray(game.schedule) ? game.schedule[0] : game.schedule;
+  const tournament = Array.isArray(schedule?.tournament) ? schedule.tournament[0] : schedule?.tournament;
+  const homeTeam = Array.isArray(game.home) ? game.home[0] : game.home;
+  const awayTeam = Array.isArray(game.away) ? game.away[0] : game.away;
+
   const isHome = game.home_team_id === row.team_id;
   const myScore = isHome ? game.home_score : game.away_score;
   const oppScore = isHome ? game.away_score : game.home_score;
-  const oppName = isHome ? game.away?.name : game.home?.name;
+  const oppName = isHome ? awayTeam?.name : homeTeam?.name;
 
   return (
     <div className="border border-surface-700 bg-surface-900 p-4 rounded group hover:border-surface-500 transition-colors">
       <p className="text-[9px] font-mono text-silver-500 uppercase tracking-widest mb-1">{label}</p>
       <p className="text-3xl font-mono text-gold mb-3">{val}</p>
       <p className="text-[10px] font-mono text-white uppercase truncate mb-1" title={oppName}>{oppName || 'TBD'} <span className="text-silver-600">/</span> {myScore}-{oppScore}</p>
-      <p className="text-[9px] font-mono text-silver-500 uppercase truncate mb-3" title={game.schedule?.tournament?.name}>
-        {formatDate(game.schedule?.scheduled_date)} <span className="text-silver-600">/</span> {game.schedule?.tournament?.name}
+      <p className="text-[9px] font-mono text-silver-500 uppercase truncate mb-3" title={tournament?.name}>
+        {formatDate(schedule?.scheduled_date)} <span className="text-silver-600">/</span> {tournament?.name}
       </p>
       <Link href={`/games/${game.id}`} className="text-[9px] font-mono text-[#4ade80] hover:text-green-300 uppercase tracking-widest transition-colors">
         VIEW MATCH
