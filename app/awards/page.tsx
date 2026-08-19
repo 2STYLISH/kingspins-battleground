@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import TournamentSelect from '@/components/TournamentSelect';
+import Link from '@/components/HiddenLink';
 
 const TROPHY: Record<string, string> = {
   BEST_PG: '🏆',
@@ -20,7 +21,7 @@ export default async function PublicAwardsPage({ searchParams }: { searchParams:
 
   const { data: awards } = await supabase
     .from('awards')
-    .select('id, award_type, admin_notes, publish_notes, published_at, winner:players!awards_winner_player_id_fkey(gamertag, team_id)')
+    .select('id, award_type, admin_notes, publish_notes, published_at, winner_player_id, winner:players!awards_winner_player_id_fkey(gamertag, slug)')
     .eq('status', 'PUBLISHED')
     .eq('tournament_id', activeTournamentId)
     .order('published_at', { ascending: true });
@@ -72,6 +73,7 @@ export default async function PublicAwardsPage({ searchParams }: { searchParams:
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {(awards ?? []).map((a: any) => {
             const teamName = playerTeams.get(a.winner_player_id);
+            const playerSlug = a.winner?.slug || a.winner?.gamertag?.toLowerCase();
             return (
               <div key={a.id} className="border border-surface-700 bg-[#080808]/90 backdrop-blur-sm p-6 rounded shadow-lg hover:border-red-600 transition-colors group">
                 <div className="flex items-center gap-3 mb-4">
@@ -84,9 +86,15 @@ export default async function PublicAwardsPage({ searchParams }: { searchParams:
                   </div>
                 </div>
 
-                <p className="text-2xl text-[#b8860b] font-display tracking-wide mb-1 uppercase drop-shadow-md">
-                  {a.winner?.gamertag ?? '—'}
-                </p>
+                {a.winner ? (
+                  <Link href={`/${playerSlug}`} className="block text-2xl text-[#b8860b] font-display tracking-wide mb-1 uppercase drop-shadow-md hover:text-red-500 transition-colors">
+                    {a.winner.gamertag}
+                  </Link>
+                ) : (
+                  <p className="text-2xl text-[#b8860b] font-display tracking-wide mb-1 uppercase drop-shadow-md">
+                    —
+                  </p>
+                )}
                 {teamName && (
                   <p className="text-xs text-silver-500 font-mono">{teamName}</p>
                 )}
