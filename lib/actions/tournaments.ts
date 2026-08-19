@@ -235,18 +235,16 @@ export async function generateBracket(tournamentId: string, numTeams: number) {
   }
 
   // Wire UB losers into LB
-  // UB R1 losers -> LB R1
-  // UB R2 losers -> LB R3
-  // UB Rk losers -> LB R(2k-1)
-  for (let ubRound = 1; ubRound <= ubRounds - 1; ubRound++) {
-    const ubRoundIds = ubIds[ubRound - 1];          // UB round (1-indexed)
-    const lbTargetRound = 2 * ubRound - 1;          // LB round that receives these losers
+  // UB R1 losers -> LB R1 (2-to-1 mapping)
+  // UB Rk (k>1) losers -> LB R(2k-2) (1-to-1 mapping)
+  for (let ubRound = 1; ubRound <= ubRounds; ubRound++) {
+    const ubRoundIds = ubIds[ubRound - 1];
+    const lbTargetRound = ubRound === 1 ? 1 : 2 * (ubRound - 1);
     const lbTargetIds = lbIds[lbTargetRound - 1];
 
     for (let i = 0; i < ubRoundIds.length; i++) {
-      // Map UB match i to a LB slot
-      // For UB R1 (lots of matches -> LB R1 same count): 1-to-1 or 2-to-1
-      const lbTarget = lbTargetIds[Math.min(i, lbTargetIds.length - 1)];
+      const targetIndex = ubRound === 1 ? Math.floor(i / 2) : i;
+      const lbTarget = lbTargetIds[targetIndex];
       if (lbTarget) {
         await supabase
           .from('bracket_matchups')
