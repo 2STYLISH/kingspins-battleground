@@ -169,7 +169,6 @@ export async function saveVerifiedGameStats(input: {
     tpa: p.didNotPlay ? 0 : p.tpa,
     ftm: p.didNotPlay ? 0 : p.ftm,
     fta: p.didNotPlay ? 0 : p.fta,
-    fouls: p.didNotPlay ? 0 : p.fouls,
     turnovers: p.didNotPlay ? 0 : p.turnovers,
     is_verified: true,
   }));
