@@ -239,10 +239,7 @@ export default async function PlayerPage({ params }: { params: { slug: string } 
               {player.photo_path ? (
                 <img src={player.photo_path} alt={player.gamertag} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center opacity-30">
-                  <span className="text-4xl mb-2">👤</span>
-                  <span className="text-[9px] font-mono">NO PHOTO</span>
-                </div>
+                <img src="/logo2.png" alt={player.gamertag} className="w-full h-full object-cover opacity-80" />
               )}
             </div>
 

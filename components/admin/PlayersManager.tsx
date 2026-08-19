@@ -29,13 +29,18 @@ export default function PlayersManager({ players }: { players: Player[] }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTier, setFilterTier] = useState<number | 'ALL'>('ALL');
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 20;
+
   const filteredPlayers = players.filter(p => {
     if (filterTier !== 'ALL' && p.tier !== filterTier) return false;
     if (searchQuery.trim() && !p.gamertag.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
 
-  const displayedPlayers = filteredPlayers.slice(0, 20);
+  const totalPages = Math.ceil(filteredPlayers.length / pageSize);
+  const displayedPlayers = filteredPlayers.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   async function handleCreatePlayer() {
     if (!gamertag.trim()) return;
@@ -136,12 +141,12 @@ export default function PlayersManager({ players }: { players: Player[] }) {
           type="text"
           placeholder="Search gamertag..."
           value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
+          onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1); }}
           className="input-field max-w-xs"
         />
         <select
           value={filterTier}
-          onChange={e => setFilterTier(e.target.value === 'ALL' ? 'ALL' : parseInt(e.target.value))}
+          onChange={e => { setFilterTier(e.target.value === 'ALL' ? 'ALL' : parseInt(e.target.value)); setCurrentPage(1); }}
           className="input-field w-32"
         >
           <option value="ALL">All Tiers</option>
@@ -179,9 +184,7 @@ export default function PlayersManager({ players }: { players: Player[] }) {
                     {p.photo_path ? (
                       <img src={p.photo_path} alt={p.gamertag} className="w-8 h-8 rounded object-cover border border-surface-600 bg-surface-900" />
                     ) : (
-                      <div className="w-8 h-8 rounded bg-surface-800 border border-surface-600 flex items-center justify-center text-[8px] font-mono text-silver-500">
-                        ADD
-                      </div>
+                      <img src="/logo2.png" alt={p.gamertag} className="w-8 h-8 rounded object-cover border border-surface-600 bg-surface-900 opacity-80" />
                     )}
                     <input
                       type="file"
@@ -250,10 +253,30 @@ export default function PlayersManager({ players }: { players: Player[] }) {
                 </td>
               </tr>
             ))}
-            {filteredPlayers.length > 20 && (
+            {totalPages > 1 && (
               <tr>
-                <td colSpan={4} className="px-5 py-4 text-center text-silver-500 font-mono text-[10px] uppercase tracking-widest bg-surface-900/50">
-                  Showing 20 of {filteredPlayers.length} players. Use search to find others.
+                <td colSpan={4} className="px-5 py-4 bg-surface-900/50">
+                  <div className="flex items-center justify-between">
+                    <span className="text-silver-500 font-mono text-[10px] uppercase tracking-widest">
+                      Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, filteredPlayers.length)} of {filteredPlayers.length} players
+                    </span>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="px-3 py-1 bg-surface-800 border border-surface-600 rounded text-[10px] font-mono text-white hover:bg-surface-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        PREV
+                      </button>
+                      <button 
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-1 bg-surface-800 border border-surface-600 rounded text-[10px] font-mono text-white hover:bg-surface-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        NEXT
+                      </button>
+                    </div>
+                  </div>
                 </td>
               </tr>
             )}

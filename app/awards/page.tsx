@@ -21,7 +21,7 @@ export default async function PublicAwardsPage({ searchParams }: { searchParams:
 
   const { data: awards } = await supabase
     .from('awards')
-    .select('id, award_type, admin_notes, publish_notes, published_at, winner_player_id, winner:players!awards_winner_player_id_fkey(gamertag, slug)')
+    .select('id, award_type, admin_notes, publish_notes, published_at, winner_player_id, winner:players!awards_winner_player_id_fkey(gamertag, slug, photo_path)')
     .eq('status', 'PUBLISHED')
     .eq('tournament_id', activeTournamentId)
     .order('published_at', { ascending: true });
@@ -87,9 +87,18 @@ export default async function PublicAwardsPage({ searchParams }: { searchParams:
                 </div>
 
                 {a.winner ? (
-                  <Link href={`/${playerSlug}`} className="block text-2xl text-[#b8860b] font-display tracking-wide mb-1 uppercase drop-shadow-md hover:text-red-500 transition-colors">
-                    {a.winner.gamertag}
-                  </Link>
+                  <div className="flex items-center gap-4 mb-2">
+                    {a.winner.photo_path ? (
+                      <img src={a.winner.photo_path} alt={a.winner.gamertag} className="w-12 h-12 object-cover rounded border border-surface-600 bg-surface-900 shadow" />
+                    ) : (
+                      <img src="/logo2.png" alt={a.winner.gamertag} className="w-12 h-12 object-cover rounded border border-surface-600 bg-surface-900 shadow opacity-80" />
+                    )}
+                    <div>
+                      <Link href={`/${playerSlug}`} className="block text-2xl text-[#b8860b] font-display tracking-wide mb-1 uppercase drop-shadow-md hover:text-red-500 transition-colors">
+                        {a.winner.gamertag}
+                      </Link>
+                    </div>
+                  </div>
                 ) : (
                   <p className="text-2xl text-[#b8860b] font-display tracking-wide mb-1 uppercase drop-shadow-md">
                     —
