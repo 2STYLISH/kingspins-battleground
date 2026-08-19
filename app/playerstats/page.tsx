@@ -31,7 +31,6 @@ function TabHeader({ activeTab, activeTournamentId }: { activeTab: string; activ
     <div>
       <p className="text-[10px] text-gold font-mono uppercase tracking-[0.3em] mb-2">BATTLEGROUND LEADERBOARDS</p>
       <h1 className="text-5xl text-white font-display tracking-widest uppercase mb-2">PLAYER STATS</h1>
-      <p className="text-silver-500 font-mono text-[10px] uppercase tracking-widest mb-8">Averages from all verified games. DNP games excluded.</p>
       <div className="flex gap-2 border-b border-surface-700 pb-px">
         <Link
           href={`/playerstats?tab=tournaments${activeTournamentId ? `&t=${activeTournamentId}` : ''}`}
@@ -180,8 +179,8 @@ export default async function StatsPage({ searchParams }: { searchParams: { tab?
               <div className="flex items-center justify-between mt-4">
                 <p className="text-[9px] font-mono text-silver-500 uppercase tracking-widest">{t.format.replace(/_/g, ' ')}</p>
                 <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded uppercase tracking-widest ${t.status === 'IN_PROGRESS' ? 'bg-gold text-black' :
-                    t.status === 'COMPLETED' ? 'bg-surface-800 text-silver-400 border border-surface-700' :
-                      'bg-surface-800 text-silver-500 border border-surface-700'
+                  t.status === 'COMPLETED' ? 'bg-surface-800 text-silver-400 border border-surface-700' :
+                    'bg-surface-800 text-silver-500 border border-surface-700'
                   }`}>{t.status.replace(/_/g, ' ')}</span>
               </div>
             </Link>
@@ -247,8 +246,8 @@ export default async function StatsPage({ searchParams }: { searchParams: { tab?
         {(tournaments ?? []).map(t => (
           <Link key={t.id} href={`/playerstats?tab=tournaments&t=${t.id}`}
             className={`px-3 py-1.5 rounded-md text-xs font-mono uppercase border transition-colors ${t.id === activeTournamentId
-                ? 'border-gold text-gold bg-gold/10'
-                : 'border-surface-600 text-mute hover:text-bone hover:border-surface-400'
+              ? 'border-gold text-gold bg-gold/10'
+              : 'border-surface-600 text-mute hover:text-bone hover:border-surface-400'
               }`}>{t.name}</Link>
         ))}
       </div>
@@ -257,8 +256,8 @@ export default async function StatsPage({ searchParams }: { searchParams: { tab?
         <div className="flex items-center gap-3">
           <h2 className="text-2xl text-bone font-display tracking-widest">{activeTournament.name}</h2>
           <span className={`text-[10px] font-mono px-2 py-0.5 rounded uppercase tracking-widest ${activeTournament.status === 'IN_PROGRESS' ? 'bg-gold/20 text-gold border border-gold/40' :
-              activeTournament.status === 'COMPLETED' ? 'bg-green-900/40 text-green-400 border border-green-800/60' :
-                'bg-surface-700 text-silver-400'
+            activeTournament.status === 'COMPLETED' ? 'bg-green-900/40 text-green-400 border border-green-800/60' :
+              'bg-surface-700 text-silver-400'
             }`}>{activeTournament.status.replace(/_/g, ' ')}</span>
         </div>
       )}

@@ -30,14 +30,14 @@ export default async function PublicAwardsPage({ searchParams }: { searchParams:
   // We can fetch the player's team for this tournament to display on the award card.
   const winnerIds = awards?.map((a: any) => a.winner_player_id).filter(Boolean) || [];
   let playerTeams = new Map<string, string>();
-  
+
   if (activeTournamentId && winnerIds.length > 0) {
     const { data: rosters } = await supabase
       .from('tournament_rosters')
       .select('player_id, team:teams(name)')
       .eq('tournament_id', activeTournamentId)
       .in('player_id', winnerIds);
-    
+
     (rosters ?? []).forEach((r: any) => {
       playerTeams.set(r.player_id, r.team?.name);
     });
@@ -49,14 +49,11 @@ export default async function PublicAwardsPage({ searchParams }: { searchParams:
     <div>
       <div className="mb-8">
         <h1 className="text-4xl text-white mb-2 uppercase tracking-widest">{activeTournamentName}</h1>
-        <p className="text-silver-500 text-sm mb-6">
-          Statistics rank the candidates. League admins make the final call.
-        </p>
 
-        <TournamentSelect 
-          tournaments={tournaments ?? []} 
-          activeId={activeTournamentId} 
-          basePath="/awards" 
+        <TournamentSelect
+          tournaments={tournaments ?? []}
+          activeId={activeTournamentId}
+          basePath="/awards"
         />
       </div>
 

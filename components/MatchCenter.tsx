@@ -53,7 +53,7 @@ export default function MatchCenter({ games = [] }: { games: any[] }) {
       <div className="flex items-center justify-between p-4 border-b border-surface-800 bg-transparent">
         <div>
           <h2 className="text-2xl font-display text-white uppercase tracking-wider">MATCH CENTER</h2>
-          <p className="text-[9px] text-silver-600 font-mono uppercase tracking-widest">RECENT FINALS, BOX SCORES, AND LEAGUE PULSE</p>
+          <p className="text-[9px] text-silver-600 font-mono uppercase tracking-widest">RECENT FINALS, BOX SCORES</p>
         </div>
 
         {/* Pagination Controls */}
@@ -128,8 +128,8 @@ export default function MatchCenter({ games = [] }: { games: any[] }) {
             <span className="text-[10px] font-mono text-silver-400 uppercase tracking-widest">
               {fHomeWin ? `${fHome} WINS` : fAwayWin ? `${fAway} WINS` : 'TIE'}
             </span>
-            <div 
-              onClick={() => router.push(`/games/${featured.id}`)} 
+            <div
+              onClick={() => router.push(`/games/${featured.id}`)}
               className="cursor-pointer text-[10px] font-mono text-white hover:text-silver-300 uppercase tracking-widest transition-colors flex items-center gap-1"
             >
               OPEN BOX SCORE &rarr;
