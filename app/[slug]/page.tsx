@@ -82,13 +82,22 @@ export default async function PlayerPage({ params }: { params: { slug: string } 
   const { data: statsRaw } = await supabase
     .from('player_game_stats')
     .select(
-      'id, pts, reb, ast, stl, blk, fgm, fga, tpm, tpa, ftm, fta, turnovers, did_not_play, is_verified, team_id, position, game:games!player_game_stats_game_id_fkey(id, home_team_id, away_team_id, home_score, away_score, played_at, home:teams!games_home_team_id_fkey(name, logo_url), away:teams!games_away_team_id_fkey(name, logo_url), schedule:schedules(scheduled_date, tournament_id, tournament:tournaments(id, name)))'
+      'id, pts, reb, ast, stl, blk, fgm, fga, tpm, tpa, ftm, fta, turnovers, did_not_play, is_verified, team_id, position, game:games!player_game_stats_game_id_fkey(id, home_team_id, away_team_id, home_score, away_score, played_at, home:teams!games_home_team_id_fkey(name, logo_url), away:teams!games_away_team_id_fkey(name, logo_url), schedule:schedules(scheduled_date, scheduled_time, tournament_id, tournament:tournaments(id, name)))'
     )
     .eq('player_id', player.id)
-    .eq('is_verified', true)
-    .order('game(played_at)', { ascending: false });
+    .eq('is_verified', true);
 
-  const stats = (statsRaw ?? []).filter(r => !r.did_not_play) as any[];
+  const stats = (statsRaw ?? [])
+    .filter(r => !r.did_not_play)
+    .sort((a, b) => {
+      const dateA = a.game?.schedule?.scheduled_date || '1970-01-01';
+      const timeA = a.game?.schedule?.scheduled_time || '00:00:00';
+      const dateB = b.game?.schedule?.scheduled_date || '1970-01-01';
+      const timeB = b.game?.schedule?.scheduled_time || '00:00:00';
+      const dtA = new Date(`${dateA}T${timeA}`).getTime();
+      const dtB = new Date(`${dateB}T${timeB}`).getTime();
+      return dtB - dtA;
+    }) as any[];
 
   let wins = 0;
   let losses = 0;

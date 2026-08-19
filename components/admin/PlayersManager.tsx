@@ -22,6 +22,18 @@ export default function PlayersManager({ players }: { players: Player[] }) {
   const [busy, setBusy] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
+  
+  // Filtering state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterTier, setFilterTier] = useState<number | 'ALL'>('ALL');
+
+  const filteredPlayers = players.filter(p => {
+    if (filterTier !== 'ALL' && p.tier !== filterTier) return false;
+    if (searchQuery.trim() && !p.gamertag.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    return true;
+  });
+
+  const displayedPlayers = filteredPlayers.slice(0, 20);
 
   async function handleCreatePlayer() {
     if (!gamertag.trim()) return;
@@ -116,6 +128,30 @@ export default function PlayersManager({ players }: { players: Player[] }) {
         </div>
       </div>
 
+      <div className="flex gap-4 items-center">
+        <h2 className="font-display text-sm text-silver-400 uppercase tracking-widest flex-shrink-0">Player Roster ({filteredPlayers.length})</h2>
+        <input
+          type="text"
+          placeholder="Search gamertag..."
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          className="input-field max-w-xs"
+        />
+        <select
+          value={filterTier}
+          onChange={e => setFilterTier(e.target.value === 'ALL' ? 'ALL' : parseInt(e.target.value))}
+          className="input-field w-32"
+        >
+          <option value="ALL">All Tiers</option>
+          <option value="1">Tier 1</option>
+          <option value="2">Tier 2</option>
+          <option value="3">Tier 3</option>
+          <option value="4">Tier 4</option>
+          <option value="5">Tier 5</option>
+          <option value="6">Tier 6</option>
+        </select>
+      </div>
+
       <div className="card overflow-hidden">
         <table className="w-full text-sm text-left">
           <thead className="bg-surface-900 border-b border-surface-700 text-silver-500 font-mono text-[10px] uppercase tracking-widest">
@@ -127,14 +163,14 @@ export default function PlayersManager({ players }: { players: Player[] }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-800">
-            {players.length === 0 && (
+            {displayedPlayers.length === 0 && (
               <tr>
-                <td colSpan={3} className="px-5 py-8 text-center text-silver-600">
-                  No players registered. Add one above.
+                <td colSpan={4} className="px-5 py-8 text-center text-silver-600">
+                  No players found matching your criteria.
                 </td>
               </tr>
             )}
-            {players.map(p => (
+            {displayedPlayers.map(p => (
               <tr key={p.id} className="hover:bg-surface-900/50 transition-colors">
                 <td className="px-5 py-3">
                   <label className="cursor-pointer block relative group/photo">
@@ -210,6 +246,13 @@ export default function PlayersManager({ players }: { players: Player[] }) {
                 </td>
               </tr>
             ))}
+            {filteredPlayers.length > 20 && (
+              <tr>
+                <td colSpan={4} className="px-5 py-4 text-center text-silver-500 font-mono text-[10px] uppercase tracking-widest bg-surface-900/50">
+                  Showing 20 of {filteredPlayers.length} players. Use search to find others.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
