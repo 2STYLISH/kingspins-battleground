@@ -2,22 +2,28 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { deleteTournament, updateTournamentChampionshipName } from '@/lib/actions/tournaments';
+import { createClient } from '@/lib/supabase/client';
+import { deleteTournament, updateTournamentChampionshipName, updateTournamentLogo } from '@/lib/actions/tournaments';
 
 export default function TournamentAdminActions({
   tournamentId,
   tournamentName,
   currentChampionshipName,
+  currentLogoUrl,
 }: {
   tournamentId: string;
   tournamentName: string;
   currentChampionshipName: string;
+  currentLogoUrl: string;
 }) {
   const router = useRouter();
   const [champName, setChampName] = useState(currentChampionshipName);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [logoUrl, setLogoUrl] = useState(currentLogoUrl);
+  const [uploading, setUploading] = useState(false);
+  const supabase = createClient();
 
   async function handleSaveChampName() {
     setSaving(true);
@@ -43,8 +49,49 @@ export default function TournamentAdminActions({
     }
   }
 
+  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert('Logo must be under 2MB');
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `${tournamentId}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from('tournament-logos')
+        .upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from('tournament-logos').getPublicUrl(path);
+      const publicUrl = urlData.publicUrl + `?t=${Date.now()}`;
+      await updateTournamentLogo(tournamentId, publicUrl);
+      setLogoUrl(publicUrl);
+      router.refresh();
+    } catch (err: any) {
+      alert('Upload failed: ' + (err?.message ?? 'Unknown error'));
+    } finally {
+      setUploading(false);
+    }
+  }
+
   return (
-    <div className="pt-3 border-t border-surface-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+    <div className="pt-3 border-t border-surface-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      {/* Logo Upload */}
+      <div className="flex items-center gap-3">
+        <label className="w-10 h-10 rounded bg-surface-800 flex items-center justify-center border border-surface-600 cursor-pointer overflow-hidden relative hover:border-gold/50 transition-colors shrink-0">
+          {uploading ? (
+            <span className="text-[9px] text-mute font-mono">...</span>
+          ) : logoUrl ? (
+            <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-[9px] text-mute font-mono">LOGO</span>
+          )}
+          <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={uploading} />
+        </label>
+      </div>
       {/* Championship award name */}
       <div className="flex-1 flex items-center gap-2 min-w-0">
         <label className="text-[10px] font-mono text-silver-500 uppercase tracking-widest whitespace-nowrap">

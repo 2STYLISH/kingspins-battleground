@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import TournamentSelect from '@/components/TournamentSelect';
 
 const TROPHY: Record<string, string> = {
   BEST_PG: '🎯',
@@ -52,22 +53,11 @@ export default async function PublicAwardsPage({ searchParams }: { searchParams:
           Statistics rank the candidates. League admins make the final call.
         </p>
 
-        <div className="flex items-center gap-3">
-          <p className="text-sm font-mono text-silver-500 uppercase tracking-widest">Tournament:</p>
-          <div className="flex gap-2 flex-wrap">
-            {tournaments?.map(t => (
-              <a 
-                key={t.id} 
-                href={`/awards?tournament_id=${t.id}`}
-                className={`px-3 py-1 text-xs font-mono uppercase tracking-widest border ${
-                  activeTournamentId === t.id ? 'border-gold text-gold bg-gold/5' : 'border-surface-600 text-silver-400 hover:border-silver-500'
-                }`}
-              >
-                {t.name}
-              </a>
-            ))}
-          </div>
-        </div>
+        <TournamentSelect 
+          tournaments={tournaments ?? []} 
+          activeId={activeTournamentId} 
+          basePath="/awards" 
+        />
       </div>
 
       {!activeTournamentId ? (

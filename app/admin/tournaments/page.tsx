@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/HiddenLink';
 import { createClient } from '@/lib/supabase/server';
 import TournamentStatusToggle from '@/components/admin/TournamentStatusToggle';
 import BackButton from '@/components/BackButton';
@@ -9,7 +9,7 @@ export default async function AdminTournamentsPage() {
   
   const { data: tournaments } = await supabase
     .from('tournaments')
-    .select('id, name, status, format, start_date, end_date, championship_award_name')
+    .select('id, name, status, format, start_date, end_date, championship_award_name, logo_url')
     .order('created_at', { ascending: false });
 
   return (
@@ -50,6 +50,7 @@ export default async function AdminTournamentsPage() {
               tournamentId={t.id}
               tournamentName={t.name}
               currentChampionshipName={t.championship_award_name ?? ''}
+              currentLogoUrl={t.logo_url ?? ''}
             />
           </div>
         ))}

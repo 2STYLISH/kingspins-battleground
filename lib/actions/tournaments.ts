@@ -69,6 +69,22 @@ export async function updateTournamentChampionshipName(tournamentId: string, nam
   revalidatePath('/awards');
 }
 
+export async function updateTournamentLogo(tournamentId: string, logoUrl: string) {
+  const { isAdmin } = await requireAdmin();
+  if (!isAdmin) throw new Error('Admin authentication required.');
+
+  const supabase = createClient();
+  const { error } = await supabase
+    .from('tournaments')
+    .update({ logo_url: logoUrl || null })
+    .eq('id', tournamentId);
+  if (error) throw error;
+
+  revalidatePath('/admin/tournaments');
+  revalidatePath('/');
+  revalidatePath('/schedule');
+}
+
 export async function updateTournamentStatus(tournamentId: string, status: 'DRAFT' | 'SEEDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED') {
   const { isAdmin } = await requireAdmin();
   if (!isAdmin) throw new Error('Admin authentication required.');
@@ -643,7 +659,7 @@ export async function generateSwissRound(tournamentId: string) {
 
   // 3. Get all teams
   const { data: participants } = await supabase.from('tournament_rosters').select('team_id').eq('tournament_id', tournamentId);
-  const teamIds = participants?.map(p => p.team_id) || [];
+  const teamIds = Array.from(new Set(participants?.map(p => p.team_id) || []));
   if (teamIds.length < 2) throw new Error('Not enough teams.');
 
   // 4. Calculate stats & history

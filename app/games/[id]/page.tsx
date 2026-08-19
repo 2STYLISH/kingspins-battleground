@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import BackButton from '@/components/BackButton';
-import Link from 'next/link';
+import Link from '@/components/HiddenLink';
 
 export default async function GameBoxScorePage({ params }: { params: { id: string } }) {
   const supabase = createClient();

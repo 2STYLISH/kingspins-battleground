@@ -10,6 +10,7 @@ interface Tournament {
   id: string;
   name: string;
   status: string;
+  logo_url: string | null;
 }
 
 interface Team {
@@ -83,16 +84,29 @@ export default function TeamsManager({
 
         <div className="card p-5 border-gold/40 shadow-[0_0_15px_rgba(255,215,0,0.05)]">
           <h2 className="font-display text-sm text-gold uppercase tracking-widest mb-4">Active Tournament Rosters</h2>
-          <select 
-            value={activeTournament} 
-            onChange={e => setActiveTournament(e.target.value)}
-            className="input-field py-2"
-          >
-            {tournaments.map(t => (
-              <option key={t.id} value={t.id}>{t.name} ({t.status})</option>
-            ))}
-            {tournaments.length === 0 && <option value="">No tournaments found</option>}
-          </select>
+          <div className="flex items-center gap-3">
+            {tournaments.find(t => t.id === activeTournament)?.logo_url ? (
+              <img 
+                src={tournaments.find(t => t.id === activeTournament)?.logo_url!} 
+                alt="Tournament Logo" 
+                className="w-10 h-10 rounded border border-surface-600 object-cover shrink-0 bg-surface-800"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded border border-surface-600 shrink-0 bg-surface-800 flex items-center justify-center">
+                <span className="text-[9px] text-mute font-mono">LOGO</span>
+              </div>
+            )}
+            <select 
+              value={activeTournament} 
+              onChange={e => setActiveTournament(e.target.value)}
+              className="input-field py-2 flex-1"
+            >
+              {tournaments.map(t => (
+                <option key={t.id} value={t.id}>{t.name} ({t.status})</option>
+              ))}
+              {tournaments.length === 0 && <option value="">No tournaments found</option>}
+            </select>
+          </div>
         </div>
       </div>
 

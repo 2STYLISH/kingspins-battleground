@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/HiddenLink';
 import { createClient } from '@/lib/supabase/server';
 import { averageStats } from '@/lib/stats';
 import type { PlayerGameStats } from '@/lib/types';

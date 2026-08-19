@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
+import Link from '@/components/HiddenLink';
 import BackButton from '@/components/BackButton';
 
 export default async function MatchupDetailPage({ params }: { params: { matchupId: string } }) {

@@ -2,13 +2,16 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 import { createPlayer, deletePlayer, updatePlayerTier, updatePlayerName } from '@/lib/actions/teams';
+import { updatePlayerPhoto } from '@/lib/actions/players';
 
 interface Player {
   id: string;
   gamertag: string;
   position: string | null;
   tier: number | null;
+  photo_path?: string | null;
 }
 
 export default function PlayersManager({ players }: { players: Player[] }) {
@@ -65,6 +68,33 @@ export default function PlayersManager({ players }: { players: Player[] }) {
     }
   }
 
+  async function handleUploadPhoto(playerId: string, file: File) {
+    setBusy(true);
+    try {
+      const supabase = createClient();
+      const ext = file.name.split('.').pop();
+      const fileName = `${playerId}-${Date.now()}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('player-photos')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('player-photos')
+        .getPublicUrl(fileName);
+
+      await updatePlayerPhoto(playerId, publicUrl);
+      router.refresh();
+    } catch (e) {
+      console.error(e);
+      alert('Failed to upload player photo.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="card p-5">
@@ -95,6 +125,7 @@ export default function PlayersManager({ players }: { players: Player[] }) {
         <table className="w-full text-sm text-left">
           <thead className="bg-surface-900 border-b border-surface-700 text-silver-500 font-mono text-[10px] uppercase tracking-widest">
             <tr>
+              <th className="px-5 py-3 w-16">Photo</th>
               <th className="px-5 py-3">Gamertag</th>
               <th className="px-5 py-3 w-40">Tier</th>
               <th className="px-5 py-3 w-24 text-right">Actions</th>
@@ -110,6 +141,31 @@ export default function PlayersManager({ players }: { players: Player[] }) {
             )}
             {players.map(p => (
               <tr key={p.id} className="hover:bg-surface-900/50 transition-colors">
+                <td className="px-5 py-3">
+                  <label className="cursor-pointer block relative group/photo">
+                    {p.photo_path ? (
+                      <img src={p.photo_path} alt={p.gamertag} className="w-8 h-8 rounded object-cover border border-surface-600 bg-surface-900" />
+                    ) : (
+                      <div className="w-8 h-8 rounded bg-surface-800 border border-surface-600 flex items-center justify-center text-[8px] font-mono text-silver-500">
+                        ADD
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          handleUploadPhoto(p.id, e.target.files[0]);
+                        }
+                      }}
+                      disabled={busy}
+                    />
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/photo:opacity-100 flex items-center justify-center transition-opacity rounded">
+                      <span className="text-[8px] text-white font-bold font-mono">↑</span>
+                    </div>
+                  </label>
+                </td>
                 <td className="px-5 py-3 font-display tracking-widest text-white">
                   {editingId === p.id ? (
                     <div className="flex items-center gap-2">

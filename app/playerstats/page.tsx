@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/HiddenLink';
 import { createClient } from '@/lib/supabase/server';
 import { averageStats } from '@/lib/stats';
 import type { PlayerGameStats } from '@/lib/types';
@@ -29,8 +29,9 @@ function getTierBadge(tier: number | null) {
 function TabHeader({ activeTab, activeTournamentId }: { activeTab: string; activeTournamentId: string }) {
   return (
     <div>
-      <h1 className="text-4xl text-white mb-1">PLAYER STATS</h1>
-      <p className="text-silver-500 text-sm mb-6">Averages from all verified games. DNP games excluded.</p>
+      <p className="text-[10px] text-gold font-mono uppercase tracking-[0.3em] mb-2">BATTLEGROUND LEADERBOARDS</p>
+      <h1 className="text-5xl text-white font-display tracking-widest uppercase mb-2">PLAYER STATS</h1>
+      <p className="text-silver-500 font-mono text-[10px] uppercase tracking-widest mb-8">Averages from all verified games. DNP games excluded.</p>
       <div className="flex gap-2 border-b border-surface-700 pb-px">
         <Link
           href={`/playerstats?tab=tournaments${activeTournamentId ? `&t=${activeTournamentId}` : ''}`}
@@ -109,12 +110,12 @@ export default async function StatsPage({ searchParams }: { searchParams: { tab?
       <div className="space-y-8">
         <TabHeader activeTab="all" activeTournamentId={activeTournamentId} />
         <section>
-          <div className="card overflow-hidden">
+          <div className="bg-surface-950 border border-surface-700 rounded overflow-hidden shadow-lg">
             <div className="overflow-x-auto">
-              <table className="w-full text-xs stat-mono">
+              <table className="w-full text-xs font-mono">
                 <thead>
-                  <tr className="border-b border-surface-700 text-silver-600 uppercase tracking-wider">
-                    <th className="text-left px-4 py-3 font-mono w-8">#</th>
+                  <tr className="bg-surface-900 border-b border-surface-700 text-silver-500 uppercase tracking-widest text-[10px]">
+                    <th className="text-left px-5 py-4 w-8">#</th>
                     <th className="text-left px-4 py-3 font-mono">Player</th>
                     <th className="text-left px-4 py-3 font-mono">Team</th>
                     <th className="px-3 py-3 text-right">GP</th>
@@ -133,15 +134,15 @@ export default async function StatsPage({ searchParams }: { searchParams: { tab?
                     <tr><td colSpan={12} className="px-5 py-8 text-silver-600 text-center">No verified stats yet.</td></tr>
                   )}
                   {rows.map(({ player, avg, teamName }, idx) => (
-                    <tr key={player.id} className="border-b border-surface-800 last:border-0 hover:bg-surface-800/50 transition-colors">
-                      <td className="px-4 py-3 text-silver-600 text-[10px]">{idx + 1}</td>
-                      <td className="px-4 py-3">
-                        <Link href={`/${player.slug || player.gamertag.toLowerCase()}`} className="text-silver-200 hover:text-white hover:underline">
+                    <tr key={player.id} className="border-b border-surface-800 last:border-0 hover:bg-surface-800 transition-colors group">
+                      <td className="px-5 py-4 text-silver-600 text-[10px]">{idx + 1}</td>
+                      <td className="px-5 py-4">
+                        <Link href={`/${player.slug || player.gamertag.toLowerCase()}`} className="text-white font-display tracking-widest uppercase group-hover:text-gold transition-colors">
                           {player.gamertag}
                         </Link>
                         {getTierBadge(player.tier)}
                       </td>
-                      <td className="px-4 py-3 text-silver-500 font-mono text-[10px] uppercase tracking-wider">{teamName}</td>
+                      <td className="px-5 py-4 text-silver-500 font-mono text-[10px] uppercase tracking-widest">{teamName}</td>
                       <td className="px-3 py-3 text-right text-silver-400">{avg.gamesPlayed}</td>
                       <td className="px-3 py-3 text-right text-white font-semibold">{avg.ppg}</td>
                       <td className="px-3 py-3 text-right text-silver-300">{avg.rpg}</td>
@@ -168,19 +169,21 @@ export default async function StatsPage({ searchParams }: { searchParams: { tab?
     return (
       <div className="space-y-8">
         <TabHeader activeTab="tournaments" activeTournamentId="" />
-        <div className="grid gap-3 md:grid-cols-2">
-          {(tournaments ?? []).length === 0 && <p className="text-mute text-sm">No tournaments yet.</p>}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mt-8">
+          {(tournaments ?? []).length === 0 && <p className="text-silver-500 font-mono text-sm uppercase">No tournaments yet.</p>}
           {(tournaments ?? []).map(t => (
             <Link key={t.id} href={`/playerstats?tab=tournaments&t=${t.id}`}
-              className="card p-5 hover:border-gold/60 transition-colors flex justify-between items-center">
-              <div>
-                <p className="text-bone">{t.name}</p>
-                <p className="text-xs font-mono text-mute uppercase mt-1">{t.format.replace(/_/g, ' ')}</p>
+              className="block p-6 border border-surface-700 bg-surface-950 hover:bg-surface-900 transition-colors rounded group">
+              <div className="flex justify-between items-start mb-4">
+                <p className="text-lg font-display text-white tracking-widest uppercase group-hover:text-gold transition-colors truncate">{t.name}</p>
               </div>
-              <span className={`text-[10px] font-mono px-2 py-0.5 rounded uppercase tracking-widest ${t.status === 'IN_PROGRESS' ? 'bg-gold/20 text-gold border border-gold/40' :
-                  t.status === 'COMPLETED' ? 'bg-green-900/40 text-green-400 border border-green-800/60' :
-                    'bg-surface-700 text-silver-400'
-                }`}>{t.status.replace(/_/g, ' ')}</span>
+              <div className="flex items-center justify-between mt-4">
+                <p className="text-[9px] font-mono text-silver-500 uppercase tracking-widest">{t.format.replace(/_/g, ' ')}</p>
+                <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded uppercase tracking-widest ${t.status === 'IN_PROGRESS' ? 'bg-gold text-black' :
+                    t.status === 'COMPLETED' ? 'bg-surface-800 text-silver-400 border border-surface-700' :
+                      'bg-surface-800 text-silver-500 border border-surface-700'
+                  }`}>{t.status.replace(/_/g, ' ')}</span>
+              </div>
             </Link>
           ))}
         </div>
@@ -261,8 +264,8 @@ export default async function StatsPage({ searchParams }: { searchParams: { tab?
       )}
 
       {teamMap.size === 0 && (
-        <div className="card p-8 text-center">
-          <p className="text-silver-600">No player stats yet for this tournament.</p>
+        <div className="border border-surface-700 bg-surface-950 p-8 text-center rounded">
+          <p className="text-silver-600 font-mono uppercase tracking-widest text-sm">No player stats yet for this tournament.</p>
         </div>
       )}
 
@@ -270,21 +273,21 @@ export default async function StatsPage({ searchParams }: { searchParams: { tab?
         {[...teamMap.entries()].map(([teamId, { teamName, players: teamPlayers }]) => (
           <section key={teamId}>
             <h3 className="text-lg text-white font-display tracking-widest mb-3">{teamName}</h3>
-            <div className="card overflow-hidden">
+            <div className="bg-surface-950 border border-surface-700 rounded overflow-hidden shadow-lg">
               <div className="overflow-x-auto">
-                <table className="w-full text-xs stat-mono">
+                <table className="w-full text-xs font-mono">
                   <thead>
-                    <tr className="border-b border-surface-700 text-silver-600 uppercase tracking-wider">
-                      <th className="text-left px-5 py-3 font-mono">Player</th>
-                      <th className="px-3 py-3 text-right">GP</th>
-                      <th className="px-3 py-3 text-right">PPG</th>
-                      <th className="px-3 py-3 text-right">RPG</th>
-                      <th className="px-3 py-3 text-right">APG</th>
-                      <th className="px-3 py-3 text-right">SPG</th>
-                      <th className="px-3 py-3 text-right">BPG</th>
-                      <th className="px-3 py-3 text-right">FG%</th>
-                      <th className="px-3 py-3 text-right">3P%</th>
-                      <th className="px-3 py-3 text-right">FT%</th>
+                    <tr className="bg-surface-900 border-b border-surface-700 text-silver-500 uppercase tracking-widest text-[10px]">
+                      <th className="text-left px-5 py-4">Player</th>
+                      <th className="px-3 py-4 text-right">GP</th>
+                      <th className="px-3 py-4 text-right">PPG</th>
+                      <th className="px-3 py-4 text-right">RPG</th>
+                      <th className="px-3 py-4 text-right">APG</th>
+                      <th className="px-3 py-4 text-right">SPG</th>
+                      <th className="px-3 py-4 text-right">BPG</th>
+                      <th className="px-3 py-4 text-right">FG%</th>
+                      <th className="px-3 py-4 text-right">3P%</th>
+                      <th className="px-3 py-4 text-right">FT%</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -292,13 +295,13 @@ export default async function StatsPage({ searchParams }: { searchParams: { tab?
                       <tr><td colSpan={10} className="px-5 py-6 text-silver-600 text-center">No stats yet.</td></tr>
                     )}
                     {teamPlayers.map(({ player, avg }) => (
-                      <tr key={player.id} className="border-b border-surface-800 last:border-0 hover:bg-surface-800/50 transition-colors">
-                        <td className="px-5 py-3">
-                          <Link href={`/${player.slug || player.gamertag.toLowerCase()}`} className="text-silver-200 hover:text-white hover:underline">
+                      <tr key={player.id} className="border-b border-surface-800 last:border-0 hover:bg-surface-800 transition-colors group">
+                        <td className="px-5 py-4">
+                          <Link href={`/${player.slug || player.gamertag.toLowerCase()}`} className="text-white font-display tracking-widest uppercase group-hover:text-gold transition-colors">
                             {player.gamertag}
                           </Link>
                           {getTierBadge(player.tier)}
-                          {player.position && <span className="ml-2 text-[10px] text-silver-600 uppercase">{player.position}</span>}
+                          {player.position && <span className="ml-2 text-[10px] text-silver-600 uppercase font-mono tracking-widest">{player.position}</span>}
                         </td>
                         {avg ? (
                           <>

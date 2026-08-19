@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
-import Link from 'next/link';
-import { formatDate } from '@/lib/format';
+import ScheduleAccordion from '@/components/ScheduleAccordion';
 
 export default async function SchedulePage({ searchParams }: { searchParams: { filter?: string } }) {
   const supabase = createClient();
@@ -8,7 +7,7 @@ export default async function SchedulePage({ searchParams }: { searchParams: { f
 
   let query = supabase
     .from('schedules')
-    .select('id, scheduled_date, scheduled_time, game_type, round_label, status, home:teams!schedules_home_team_id_fkey(name), away:teams!schedules_away_team_id_fkey(name), games(id)')
+    .select('id, scheduled_date, scheduled_time, game_type, round_label, status, tournament_id, tournament:tournaments(name, status), home:teams!schedules_home_team_id_fkey(name), away:teams!schedules_away_team_id_fkey(name), games(id)')
     .order('scheduled_date', { ascending: true })
     .order('scheduled_time', { ascending: true });
 
@@ -18,30 +17,61 @@ export default async function SchedulePage({ searchParams }: { searchParams: { f
 
   const { data: games } = await query;
 
-  const grouped = new Map<string, typeof games>();
+  // Group games by tournament ID
+  const groupedByTournament = new Map<string, { tournamentName: string, status: string, games: any[] }>();
+  
+  // Track games without a tournament separately
+  const unassignedGames: any[] = [];
+
   (games ?? []).forEach((g) => {
-    const list = grouped.get(g.scheduled_date) ?? [];
-    list.push(g);
-    grouped.set(g.scheduled_date, list as any);
+    // Handle Supabase returning arrays for foreign keys
+    const tournamentObj = Array.isArray(g.tournament) ? g.tournament[0] : g.tournament;
+    
+    if (g.tournament_id && tournamentObj) {
+      const group = groupedByTournament.get(g.tournament_id) ?? {
+        tournamentName: tournamentObj.name,
+        status: tournamentObj.status,
+        games: [] as any[]
+      };
+      group.games.push({ ...g, tournament: tournamentObj }); // normalize the tournament object just in case
+      groupedByTournament.set(g.tournament_id, group);
+    } else {
+      unassignedGames.push(g);
+    }
+  });
+
+  // Sort tournaments: active first (SEEDING, IN_PROGRESS), then others
+  const sortedTournaments = [...groupedByTournament.values()].sort((a, b) => {
+    const aActive = ['SEEDING', 'IN_PROGRESS'].includes(a.status);
+    const bActive = ['SEEDING', 'IN_PROGRESS'].includes(b.status);
+    if (aActive && !bActive) return -1;
+    if (!aActive && bActive) return 1;
+    return 0;
   });
 
   const filters = [
-    { key: 'all', label: 'All' },
+    { key: 'all', label: 'All Games' },
     { key: 'regular', label: 'Regular Season' },
     { key: 'playoffs', label: 'Playoffs' },
     { key: 'tournament', label: 'Tournament' },
   ];
 
   return (
-    <div>
-      <h1 className="text-4xl text-bone mb-1">UPCOMING GAMES</h1>
-      <div className="flex gap-2 my-6">
+    <div className="max-w-6xl mx-auto space-y-8">
+      <div>
+        <p className="text-[10px] text-gold font-mono uppercase tracking-[0.3em] mb-2">BATTLEGROUND SCHEDULE</p>
+        <h1 className="text-5xl text-white font-display tracking-widest uppercase">UPCOMING GAMES</h1>
+      </div>
+
+      <div className="flex flex-wrap gap-2 mb-8">
         {filters.map((f) => (
           <a
             key={f.key}
             href={`/schedule?filter=${f.key}`}
-            className={`px-3 py-1.5 rounded-md text-xs font-mono uppercase border ${
-              filter === f.key ? 'border-gold text-gold' : 'border-arena-700 text-mute hover:text-bone'
+            className={`px-4 py-2 rounded text-[10px] font-mono uppercase tracking-widest border transition-colors ${
+              filter === f.key 
+                ? 'border-gold bg-gold/10 text-gold' 
+                : 'border-surface-700 bg-surface-900 text-silver-400 hover:text-white hover:border-surface-500'
             }`}
           >
             {f.label}
@@ -49,43 +79,29 @@ export default async function SchedulePage({ searchParams }: { searchParams: { f
         ))}
       </div>
 
-      {[...grouped.entries()].length === 0 && <p className="card p-6 text-mute text-sm">No games scheduled.</p>}
+      {(games ?? []).length === 0 && (
+        <div className="border border-surface-700 bg-surface-950 rounded p-8 text-center">
+          <p className="text-silver-500 font-mono text-sm uppercase">No games scheduled for this filter.</p>
+        </div>
+      )}
 
       <div className="space-y-6">
-        {[...grouped.entries()].map(([date, list]) => (
-          <div key={date}>
-            <p className="text-xs font-mono text-gold uppercase tracking-widest mb-2">{formatDate(date)}</p>
-            <div className="grid gap-3 md:grid-cols-2">
-              {(list ?? []).map((g: any) => {
-                const displayTime = g.scheduled_time 
-                  ? new Date(`1970-01-01T${g.scheduled_time}`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) 
-                  : '';
-                const gameId = g.games?.[0]?.id;
-                const isComplete = g.status === 'COMPLETED' && gameId;
-
-                const CardContent = (
-                  <>
-                    <p className="text-xs text-mute font-mono uppercase">{displayTime} · {g.status}</p>
-                    <p className="text-bone mt-2">{g.home?.name ?? 'TBD'}</p>
-                    <p className="text-mute text-xs my-1">VS</p>
-                    <p className="text-bone">{g.away?.name ?? 'TBD'}</p>
-                    {g.round_label && <p className="text-xs text-crimson-400 mt-2 uppercase font-mono">{g.round_label}</p>}
-                  </>
-                );
-
-                return isComplete ? (
-                  <Link key={g.id} href={`/games/${gameId}`} className="card p-4 block hover:border-gold/60 transition-colors">
-                    {CardContent}
-                  </Link>
-                ) : (
-                  <div key={g.id} className="card p-4">
-                    {CardContent}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+        {sortedTournaments.map((t, idx) => (
+          <ScheduleAccordion 
+            key={idx} 
+            tournamentName={t.tournamentName} 
+            games={t.games} 
+            defaultExpanded={['SEEDING', 'IN_PROGRESS'].includes(t.status)} 
+          />
         ))}
+
+        {unassignedGames.length > 0 && (
+          <ScheduleAccordion 
+            tournamentName="Exhibition / Unassigned Games" 
+            games={unassignedGames} 
+            defaultExpanded={true} 
+          />
+        )}
       </div>
     </div>
   );

@@ -57,7 +57,7 @@ export default function BracketTree({ matchups }: { matchups: Matchup[] }) {
   });
 
   const visibleMatchups = sortedMatchups.filter(m => !m.is_bye);
-  const winners = visibleMatchups.filter((m) => m.bracket_side === 'WINNERS' || !m.bracket_side);
+  const winners = visibleMatchups.filter((m) => m.bracket_side !== 'LOSERS' && m.bracket_side !== 'GRAND_FINAL');
   const losers = visibleMatchups.filter((m) => m.bracket_side === 'LOSERS');
   const grandFinal = visibleMatchups.filter((m) => m.bracket_side === 'GRAND_FINAL');
 

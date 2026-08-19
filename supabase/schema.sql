@@ -68,6 +68,7 @@ create table if not exists tournaments (
   start_date date,
   end_date date,
   status text not null default 'DRAFT' check (status in ('DRAFT', 'SEEDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')),
+  logo_url text,
   created_at timestamptz not null default now()
 );
 
@@ -102,7 +103,7 @@ create table if not exists bracket_matchups (
   feeds_into_matchup_id uuid references bracket_matchups(id),
   loser_feeds_into_matchup_id uuid references bracket_matchups(id),
   is_bye boolean not null default false,
-  bracket_side text default 'WINNERS' check (bracket_side in ('WINNERS', 'LOSERS', 'GRAND_FINAL', 'ROUND_ROBIN')),
+  bracket_side text default 'WINNERS' check (bracket_side in ('WINNERS', 'LOSERS', 'GRAND_FINAL', 'ROUND_ROBIN', 'SWISS')),
   status text not null default 'PENDING' check (status in ('PENDING', 'SCHEDULED', 'IN_PROGRESS', 'COMPLETED')),
   created_at timestamptz not null default now(),
   unique (tournament_id, round, slot, bracket_side)
@@ -460,4 +461,14 @@ create trigger trg_award_status_flow
 insert into storage.buckets (id, name, public)
 values ('game-screenshots', 'game-screenshots', false)
 on conflict (id) do nothing;
+insert into storage.buckets (id, name, public)
+values ('team-logos', 'team-logos', true)
+on conflict (id) do nothing;
 
+insert into storage.buckets (id, name, public)
+values ('tournament-logos', 'tournament-logos', true)
+on conflict (id) do nothing;
+
+insert into storage.buckets (id, name, public)
+values ('player-photos', 'player-photos', true)
+on conflict (id) do nothing;

@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
-import Link from 'next/link';
+import Link from '@/components/HiddenLink';
 import BracketTree from '@/components/BracketTree';
 import BackButton from '@/components/BackButton';
 import { notFound } from 'next/navigation';

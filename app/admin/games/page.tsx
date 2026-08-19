@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/HiddenLink';
 import { createClient } from '@/lib/supabase/server';
 import BackButton from '@/components/BackButton';
 import { formatDate, formatTime } from '@/lib/format';

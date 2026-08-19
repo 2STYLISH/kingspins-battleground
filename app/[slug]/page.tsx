@@ -1,8 +1,9 @@
-import Link from 'next/link';
+import Link from '@/components/HiddenLink';
 import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import BackButton from '@/components/BackButton';
 import { averageStats } from '@/lib/stats';
+import { formatDate } from '@/lib/format';
 import type { PlayerGameStats } from '@/lib/types';
 
 function getTierBadge(tier: number | null) {
@@ -17,40 +18,71 @@ function getTierBadge(tier: number | null) {
   };
   const color = colors[tier] || colors[6];
   return (
-    <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-widest font-bold ${color}`}>
+    <span className={`inline-block px-3 py-1 rounded-sm text-[10px] font-mono uppercase tracking-widest font-bold ${color}`}>
       Tier {tier}
     </span>
   );
 }
 
 const AWARD_LABELS: Record<string, { label: string; icon: string }> = {
-  BEST_PG:             { label: 'Best Point Guard',          icon: '🎯' },
-  BEST_SG:             { label: 'Best Shooting Guard',       icon: '🔥' },
-  BEST_SF:             { label: 'Best Small Forward',        icon: '🦅' },
-  BEST_PF:             { label: 'Best Power Forward',        icon: '💪' },
-  BEST_CENTER:         { label: 'Best Center',               icon: '🧱' },
-  FINALS_MVP:          { label: 'Finals MVP',                icon: '🏆' },
-  OVERALL_MVP:         { label: 'Overall MVP',               icon: '🌟' },
-  OVERALL_DPOY:        { label: 'Overall DPOY',              icon: '🛡️' },
+  BEST_PG: { label: 'Best Point Guard', icon: '🎯' },
+  BEST_SG: { label: 'Best Shooting Guard', icon: '🔥' },
+  BEST_SF: { label: 'Best Small Forward', icon: '🦅' },
+  BEST_PF: { label: 'Best Power Forward', icon: '💪' },
+  BEST_CENTER: { label: 'Best Center', icon: '🧱' },
+  FINALS_MVP: { label: 'Finals MVP', icon: '🏆' },
+  OVERALL_MVP: { label: 'Overall MVP', icon: '🌟' },
+  OVERALL_DPOY: { label: 'Overall DPOY', icon: '🛡️' },
 };
 
-export default async function PlayerPage({ params, searchParams }: { params: { slug: string }; searchParams: { tab?: string } }) {
+function pct(made: number, attempted: number) {
+  if (attempted === 0) return 0;
+  return ((made / attempted) * 100).toFixed(1);
+}
+
+export default async function PlayerPage({ params }: { params: { slug: string } }) {
   const supabase = createClient();
-  const activeTab = searchParams.tab === 'achievements' ? 'achievements' : searchParams.tab === 'gamelog' ? 'gamelog' : 'stats';
 
   const { data: player } = await supabase
     .from('players')
-    .select('id, gamertag, position, tier, bio, team_id, team:teams(id, name)')
+    .select('id, gamertag, position, tier, bio, created_at, photo_path, team_id')
     .eq('slug', params.slug.toLowerCase())
     .maybeSingle();
 
   if (!player) notFound();
 
-  // All verified stats for this player
+  // 1. Current Teams / Roster Status
+  const { data: currentRosters } = await supabase
+    .from('tournament_rosters')
+    .select('team_id, tournament_id, team:teams(name, logo_url), tournament:tournaments(name, status, start_date)')
+    .eq('player_id', player.id)
+    .order('created_at', { ascending: false });
+
+  const activeLeagues = (currentRosters ?? []).map(r => {
+    const t = Array.isArray(r.tournament) ? r.tournament[0] : r.tournament;
+    const team = Array.isArray(r.team) ? r.team[0] : r.team;
+    return {
+      tournament: t,
+      teamName: team?.name ?? 'Unknown',
+      teamLogo: team?.logo_url ?? null,
+    };
+  }).filter(x => x.tournament?.status === 'SEEDING' || x.tournament?.status === 'IN_PROGRESS');
+
+  const pastLeagues = (currentRosters ?? []).map(r => {
+    const t = Array.isArray(r.tournament) ? r.tournament[0] : r.tournament;
+    const team = Array.isArray(r.team) ? r.team[0] : r.team;
+    return {
+      tournament: t,
+      teamName: team?.name ?? 'Unknown',
+      teamLogo: team?.logo_url ?? null,
+    };
+  }).filter(x => x.tournament?.status === 'COMPLETED');
+
+  // 2. All verified stats for this player
   const { data: statsRaw } = await supabase
     .from('player_game_stats')
     .select(
-      'pts, reb, ast, stl, blk, fgm, fga, tpm, tpa, ftm, fta, turnovers, did_not_play, is_verified, team_id, game:games!player_game_stats_game_id_fkey(id, home_team_id, away_team_id, home_score, away_score, played_at, home:teams!games_home_team_id_fkey(name), away:teams!games_away_team_id_fkey(name), schedule:schedules(tournament_id, tournament:tournaments(id, name)))'
+      'id, pts, reb, ast, stl, blk, fgm, fga, tpm, tpa, ftm, fta, turnovers, did_not_play, is_verified, team_id, game:games!player_game_stats_game_id_fkey(id, home_team_id, away_team_id, home_score, away_score, played_at, home:teams!games_home_team_id_fkey(name, logo_url), away:teams!games_away_team_id_fkey(name, logo_url), schedule:schedules(scheduled_date, tournament_id, tournament:tournaments(id, name)))'
     )
     .eq('player_id', player.id)
     .eq('is_verified', true)
@@ -58,58 +90,80 @@ export default async function PlayerPage({ params, searchParams }: { params: { s
 
   const stats = (statsRaw ?? []).filter(r => !r.did_not_play) as any[];
 
-  // Overall averages
   let wins = 0;
+  let losses = 0;
   let gamesPlayed = 0;
+  let totalPts = 0;
+  let totalReb = 0;
+  let totalAst = 0;
+  let totalStl = 0;
+  let totalBlk = 0;
+  let totalTov = 0;
+  let totalFgm = 0;
+  let totalFga = 0;
+  let totalTpm = 0;
+  let totalTpa = 0;
+  let totalFtm = 0;
+  let totalFta = 0;
+
+  // Track career highs
+  const highs = { pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, fgm: 0, tpm: 0, ftm: 0 };
+  const highGames = { pts: null as any, reb: null as any, ast: null as any, stl: null as any, blk: null as any, fgm: null as any, tpm: null as any, ftm: null as any };
+
   for (const row of stats) {
     gamesPlayed++;
+    totalPts += row.pts || 0;
+    totalReb += row.reb || 0;
+    totalAst += row.ast || 0;
+    totalStl += row.stl || 0;
+    totalBlk += row.blk || 0;
+    totalTov += row.turnovers || 0;
+    totalFgm += row.fgm || 0;
+    totalFga += row.fga || 0;
+    totalTpm += row.tpm || 0;
+    totalTpa += row.tpa || 0;
+    totalFtm += row.ftm || 0;
+    totalFta += row.fta || 0;
+
     const game = row.game;
     if (game && row.team_id) {
       const isHome = game.home_team_id === row.team_id;
       const myScore = isHome ? game.home_score : game.away_score;
       const oppScore = isHome ? game.away_score : game.home_score;
-      if (myScore != null && oppScore != null && myScore > oppScore) wins++;
+      if (myScore != null && oppScore != null) {
+        if (myScore > oppScore) wins++;
+        else losses++;
+      }
     }
+
+    if (row.pts > highs.pts) { highs.pts = row.pts; highGames.pts = row; }
+    if (row.reb > highs.reb) { highs.reb = row.reb; highGames.reb = row; }
+    if (row.ast > highs.ast) { highs.ast = row.ast; highGames.ast = row; }
+    if (row.stl > highs.stl) { highs.stl = row.stl; highGames.stl = row; }
+    if (row.blk > highs.blk) { highs.blk = row.blk; highGames.blk = row; }
+    if (row.fgm > highs.fgm) { highs.fgm = row.fgm; highGames.fgm = row; }
+    if (row.tpm > highs.tpm) { highs.tpm = row.tpm; highGames.tpm = row; }
+    if (row.ftm > highs.ftm) { highs.ftm = row.ftm; highGames.ftm = row; }
   }
+
   const overallAvg = gamesPlayed > 0 ? averageStats(stats, wins, gamesPlayed) : null;
-  const team = player.team as any;
+  const winPct = gamesPlayed > 0 ? ((wins / gamesPlayed) * 100).toFixed(1) : 0;
 
-  // Group by tournament — compute per-tournament averages + game logs
-  type TournamentEntry = {
-    tournamentId: string;
-    tournamentName: string;
-    rows: any[];
-    wins: number;
-    avg: ReturnType<typeof averageStats> | null;
-  };
-  const tournamentMap = new Map<string, TournamentEntry>();
+  const ppg = overallAvg?.ppg || 0;
+  const rpg = overallAvg?.rpg || 0;
+  const apg = overallAvg?.apg || 0;
+  const spg = overallAvg?.spg || 0;
+  const bpg = overallAvg?.bpg || 0;
+  const fgPct = overallAvg?.fgPct || 0;
+  const tpPct = overallAvg?.tpPct || 0;
+  const ftPct = overallAvg?.ftPct || 0;
+  const topg = gamesPlayed > 0 ? (totalTov / gamesPlayed).toFixed(1) : 0;
 
-  for (const row of stats) {
-    const tournamentId = row.game?.schedule?.tournament_id ?? 'other';
-    const tournamentName = row.game?.schedule?.tournament?.name ?? 'Pro-Am League';
-    if (!tournamentMap.has(tournamentId)) {
-      tournamentMap.set(tournamentId, { tournamentId, tournamentName, rows: [], wins: 0, avg: null });
-    }
-    const entry = tournamentMap.get(tournamentId)!;
-    entry.rows.push(row);
-    const game = row.game;
-    if (game && row.team_id) {
-      const isHome = game.home_team_id === row.team_id;
-      const myScore = isHome ? game.home_score : game.away_score;
-      const oppScore = isHome ? game.away_score : game.home_score;
-      if (myScore != null && oppScore != null && myScore > oppScore) entry.wins++;
-    }
-  }
-  for (const entry of tournamentMap.values()) {
-    entry.avg = averageStats(entry.rows, entry.wins, entry.rows.length);
-  }
-  const tournamentEntries = [...tournamentMap.values()];
-
-  // Achievements — championships + awards
+  // 3. Achievements
   const { data: championships } = await supabase
     .from('championships')
     .select('tournament_id, champion_team_id, runner_up_team_id, tournament:tournaments(name, championship_award_name)')
-    .or(`champion_team_id.eq.${team?.id ?? 'null'},runner_up_team_id.eq.${team?.id ?? 'null'}`);
+    .or(`champion_team_id.eq.${player.team_id ?? 'null'},runner_up_team_id.eq.${player.team_id ?? 'null'}`);
 
   const { data: awards } = await supabase
     .from('awards')
@@ -117,293 +171,382 @@ export default async function PlayerPage({ params, searchParams }: { params: { s
     .eq('winner_player_id', player.id)
     .eq('status', 'PUBLISHED');
 
-  const champWins = (championships ?? []).filter((c: any) => c.champion_team_id === team?.id);
-  const runnerUps = (championships ?? []).filter((c: any) => c.runner_up_team_id === team?.id && c.champion_team_id !== team?.id);
-  const hasAchievements = champWins.length > 0 || runnerUps.length > 0 || (awards ?? []).length > 0;
+  const champWins = (championships ?? []).filter((c: any) => c.champion_team_id === player.team_id);
+  const runnerUps = (championships ?? []).filter((c: any) => c.runner_up_team_id === player.team_id && c.champion_team_id !== player.team_id);
 
-  function TabLink({ tab, label }: { tab: string; label: string }) {
-    const isActive = activeTab === tab;
-    return (
-      <Link
-        href={`/${params.slug}?tab=${tab}`}
-        className={`px-4 py-2 text-xs font-mono uppercase tracking-widest border-b-2 transition-colors ${
-          isActive ? 'border-gold text-gold' : 'border-transparent text-silver-500 hover:text-silver-300'
-        }`}
-      >
-        {label}
-      </Link>
-    );
-  }
+  // 4. Recent matches (Last 10)
+  const recentGames = stats.slice(0, 10);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 max-w-6xl mx-auto">
       <BackButton />
-      {/* Header */}
-      <div>
-        <div className="flex flex-wrap items-center gap-4 mt-4 mb-2">
-          <h1 className="text-4xl text-white font-display tracking-widest">{player.gamertag}</h1>
-          {getTierBadge(player.tier)}
-          {hasAchievements && (
-            <span className="text-xl" title="Has achievements">🏆</span>
-          )}
-        </div>
-        {player.position && <p className="text-silver-500 text-sm uppercase tracking-widest font-mono">{player.position}</p>}
-        {team && (
-          <p className="text-silver-400 text-sm mt-1 font-mono">{team.name}</p>
-        )}
-        {player.bio && <p className="text-silver-400 text-sm mt-4 max-w-2xl leading-relaxed">{player.bio}</p>}
-      </div>
 
-      {/* Tabs */}
-      <div className="flex gap-0 border-b border-surface-700 pb-px">
-        <TabLink tab="stats" label="Stats" />
-        <TabLink tab="gamelog" label="Game Log" />
-        <TabLink tab="achievements" label={`Achievements${hasAchievements ? ' ★' : ''}`} />
-      </div>
+      {/* --- MASTHEAD --- */}
+      <div className="bg-surface-950 border border-surface-700 p-6 md:p-10 relative overflow-hidden rounded shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+        {/* Subtle grid background */}
+        <div className="absolute inset-0 bg-grid-subtle opacity-30 pointer-events-none" />
 
-      {/* ── STATS TAB ── */}
-      {activeTab === 'stats' && (
-        <div className="space-y-8">
-          {/* Overall averages */}
-          <section>
-            <h2 className="text-sm font-mono text-silver-400 uppercase tracking-widest mb-3">Overall Averages</h2>
-            <div className="card overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs stat-mono">
-                  <thead>
-                    <tr className="border-b border-surface-700 text-silver-600 uppercase tracking-wider bg-surface-900/50">
-                      <th className="px-5 py-4 text-center">GP</th>
-                      <th className="px-5 py-4 text-center">PPG</th>
-                      <th className="px-5 py-4 text-center">RPG</th>
-                      <th className="px-5 py-4 text-center">APG</th>
-                      <th className="px-5 py-4 text-center">SPG</th>
-                      <th className="px-5 py-4 text-center">BPG</th>
-                      <th className="px-5 py-4 text-center">FG%</th>
-                      <th className="px-5 py-4 text-center">3P%</th>
-                      <th className="px-5 py-4 text-center">FT%</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {overallAvg ? (
-                      <tr>
-                        <td className="px-5 py-5 text-center text-silver-300">{overallAvg.gamesPlayed}</td>
-                        <td className="px-5 py-5 text-center text-white font-bold text-lg">{overallAvg.ppg}</td>
-                        <td className="px-5 py-5 text-center text-silver-200">{overallAvg.rpg}</td>
-                        <td className="px-5 py-5 text-center text-silver-200">{overallAvg.apg}</td>
-                        <td className="px-5 py-5 text-center text-silver-200">{overallAvg.spg}</td>
-                        <td className="px-5 py-5 text-center text-silver-200">{overallAvg.bpg}</td>
-                        <td className="px-5 py-5 text-center text-silver-400">{overallAvg.fgPct}%</td>
-                        <td className="px-5 py-5 text-center text-silver-400">{overallAvg.tpPct}%</td>
-                        <td className="px-5 py-5 text-center text-silver-400">{overallAvg.ftPct}%</td>
-                      </tr>
-                    ) : (
-                      <tr><td colSpan={9} className="px-5 py-8 text-center text-silver-600">No verified game stats yet.</td></tr>
-                    )}
-                  </tbody>
-                </table>
+        <div className="relative z-10">
+          <p className="text-[10px] text-gold font-mono uppercase tracking-[0.3em] mb-4">PLAYER</p>
+
+          <div className="flex flex-col md:flex-row gap-8 items-start md:items-end">
+            {/* Player Photo Box */}
+            <div className="w-32 h-32 md:w-48 md:h-48 border border-surface-600 bg-surface-900 rounded shrink-0 relative overflow-hidden shadow-xl">
+              {player.photo_path ? (
+                <img src={player.photo_path} alt={player.gamertag} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center opacity-30">
+                  <span className="text-4xl mb-2">👤</span>
+                  <span className="text-[9px] font-mono">NO PHOTO</span>
+                </div>
+              )}
+            </div>
+
+            {/* Gamertag & Info */}
+            <div className="flex-1">
+              <h1 className="text-6xl md:text-8xl text-white font-display uppercase tracking-widest leading-none mb-3 drop-shadow-lg">
+                {player.gamertag}
+              </h1>
+
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                {getTierBadge(player.tier)}
+                {player.position && (
+                  <span className="inline-block px-3 py-1 bg-surface-800 border border-surface-600 rounded-sm text-[10px] font-mono text-silver-300 uppercase tracking-widest font-bold">
+                    {player.position}
+                  </span>
+                )}
               </div>
             </div>
-          </section>
+          </div>
 
-          {/* Per-tournament averages */}
-          {tournamentEntries.length > 0 && (
-            <section>
-              <h2 className="text-sm font-mono text-silver-400 uppercase tracking-widest mb-3">By Tournament</h2>
-              <div className="space-y-4">
-                {tournamentEntries.map(entry => (
-                  <div key={entry.tournamentId} className="card overflow-hidden">
-                    <div className="px-5 py-3 border-b border-surface-700 flex items-center justify-between">
-                      <p className="text-xs font-mono text-gold uppercase tracking-widest">{entry.tournamentName}</p>
-                      <Link
-                        href={`/${params.slug}?tab=gamelog#${entry.tournamentId}`}
-                        className="text-[10px] font-mono text-silver-500 hover:text-white uppercase tracking-widest"
-                      >
-                        Game Log →
-                      </Link>
-                    </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-xs stat-mono">
-                        <thead>
-                          <tr className="border-b border-surface-700 text-silver-600 uppercase tracking-wider bg-surface-900/30">
-                            <th className="px-5 py-3 text-center">GP</th>
-                            <th className="px-5 py-3 text-center">W</th>
-                            <th className="px-5 py-3 text-center">PPG</th>
-                            <th className="px-5 py-3 text-center">RPG</th>
-                            <th className="px-5 py-3 text-center">APG</th>
-                            <th className="px-5 py-3 text-center">SPG</th>
-                            <th className="px-5 py-3 text-center">BPG</th>
-                            <th className="px-5 py-3 text-center">FG%</th>
-                            <th className="px-5 py-3 text-center">3P%</th>
-                            <th className="px-5 py-3 text-center">FT%</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {entry.avg ? (
-                            <tr>
-                              <td className="px-5 py-4 text-center text-silver-300">{entry.avg.gamesPlayed}</td>
-                              <td className="px-5 py-4 text-center text-green-400">{entry.wins}</td>
-                              <td className="px-5 py-4 text-center text-white font-bold">{entry.avg.ppg}</td>
-                              <td className="px-5 py-4 text-center text-silver-200">{entry.avg.rpg}</td>
-                              <td className="px-5 py-4 text-center text-silver-200">{entry.avg.apg}</td>
-                              <td className="px-5 py-4 text-center text-silver-200">{entry.avg.spg}</td>
-                              <td className="px-5 py-4 text-center text-silver-200">{entry.avg.bpg}</td>
-                              <td className="px-5 py-4 text-center text-silver-400">{entry.avg.fgPct}%</td>
-                              <td className="px-5 py-4 text-center text-silver-400">{entry.avg.tpPct}%</td>
-                              <td className="px-5 py-4 text-center text-silver-400">{entry.avg.ftPct}%</td>
-                            </tr>
-                          ) : (
-                            <tr><td colSpan={10} className="py-4 text-center text-silver-600">No stats</td></tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
+          {/* Masthead Stats Ribbon */}
+          <div className="mt-8 pt-6 border-t border-surface-700/50 flex flex-wrap gap-4 md:gap-8 justify-between lg:justify-start">
+            <div className="min-w-[100px]">
+              <p className="text-[9px] font-mono text-silver-600 uppercase tracking-widest mb-1">RECORD</p>
+              <p className="text-2xl font-mono text-gold leading-none">{wins}-{losses}</p>
+              <p className="text-[9px] font-mono text-silver-500 uppercase mt-1">{winPct}% WIN</p>
+            </div>
+            <div className="min-w-[100px] border-l border-surface-700/50 pl-4 md:pl-8">
+              <p className="text-[9px] font-mono text-silver-600 uppercase tracking-widest mb-1">GAMES</p>
+              <p className="text-2xl font-mono text-white leading-none">{gamesPlayed}</p>
+              <p className="text-[9px] font-mono text-silver-500 uppercase mt-1">TRACKED</p>
+            </div>
+            <div className="min-w-[100px] border-l border-surface-700/50 pl-4 md:pl-8">
+              <p className="text-[9px] font-mono text-silver-600 uppercase tracking-widest mb-1">PPG</p>
+              <p className="text-2xl font-mono text-white leading-none">{ppg}</p>
+              <p className="text-[9px] font-mono text-silver-500 uppercase mt-1">CAREER</p>
+            </div>
+            <div className="min-w-[100px] border-l border-surface-700/50 pl-4 md:pl-8">
+              <p className="text-[9px] font-mono text-silver-600 uppercase tracking-widest mb-1">APG</p>
+              <p className="text-2xl font-mono text-white leading-none">{apg}</p>
+              <p className="text-[9px] font-mono text-silver-500 uppercase mt-1">CAREER</p>
+            </div>
+            <div className="min-w-[100px] border-l border-surface-700/50 pl-4 md:pl-8">
+              <p className="text-[9px] font-mono text-silver-600 uppercase tracking-widest mb-1">RPG</p>
+              <p className="text-2xl font-mono text-white leading-none">{rpg}</p>
+              <p className="text-[9px] font-mono text-silver-500 uppercase mt-1">CAREER</p>
+            </div>
+            <div className="min-w-[100px] border-l border-surface-700/50 pl-4 md:pl-8">
+              <p className="text-[9px] font-mono text-silver-600 uppercase tracking-widest mb-1">3PM</p>
+              <p className="text-2xl font-mono text-gold leading-none">{totalTpm}</p>
+              <p className="text-[9px] font-mono text-silver-500 uppercase mt-1">MADE</p>
+            </div>
+          </div>
         </div>
-      )}
+      </div>
 
-      {/* ── GAME LOG TAB ── */}
-      {activeTab === 'gamelog' && (
-        <div className="space-y-10">
-          {tournamentEntries.length === 0 && (
-            <p className="text-silver-600">No verified games yet.</p>
-          )}
-          {tournamentEntries.map(entry => (
-            <section key={entry.tournamentId} id={entry.tournamentId}>
-              <h2 className="text-sm font-display text-gold uppercase tracking-widest mb-3">{entry.tournamentName} — Game Log</h2>
-              <div className="card overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs stat-mono">
-                    <thead>
-                      <tr className="border-b border-surface-700 text-silver-600 uppercase tracking-wider bg-surface-900/50">
-                        <th className="text-left px-5 py-3 font-mono">Date</th>
-                        <th className="text-left px-3 py-3 font-mono">Matchup</th>
-                        <th className="px-3 py-3 text-right text-white">PTS</th>
-                        <th className="px-3 py-3 text-right">REB</th>
-                        <th className="px-3 py-3 text-right">AST</th>
-                        <th className="px-3 py-3 text-right">STL</th>
-                        <th className="px-3 py-3 text-right">BLK</th>
-                        <th className="px-3 py-3 text-right">FGM-A</th>
-                        <th className="px-3 py-3 text-right">3PM-A</th>
-                        <th className="px-3 py-3 text-right">TO</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {entry.rows.map((row, i) => {
-                        const game = row.game;
-                        const isHome = game.home_team_id === row.team_id;
-                        const myScore = isHome ? game.home_score : game.away_score;
-                        const oppScore = isHome ? game.away_score : game.home_score;
-                        const oppName = isHome ? game.away?.name : game.home?.name;
-                        const won = myScore != null && oppScore != null && myScore > oppScore;
-                        const dateStr = game.played_at
-                          ? new Date(game.played_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                          : '—';
-                        return (
-                          <tr key={game.id + '-' + i} className="border-b border-surface-800 last:border-0 hover:bg-surface-800/50 transition-colors">
-                            <td className="px-5 py-3 text-silver-500 whitespace-nowrap">
-                              <Link href={`/games/${game.id}`} className="hover:text-white hover:underline">{dateStr}</Link>
-                            </td>
-                            <td className="px-3 py-3 whitespace-nowrap">
-                              <span className={`inline-block w-4 text-center mr-2 font-bold ${won ? 'text-green-500' : 'text-crimson-500'}`}>
-                                {won ? 'W' : 'L'}
-                              </span>
-                              <span className="text-silver-400">{isHome ? 'vs' : '@'} {oppName ?? 'Unknown'}</span>
-                            </td>
-                            <td className="px-3 py-3 text-right text-white font-semibold">{row.pts}</td>
-                            <td className="px-3 py-3 text-right text-silver-300">{row.reb}</td>
-                            <td className="px-3 py-3 text-right text-silver-300">{row.ast}</td>
-                            <td className="px-3 py-3 text-right text-silver-300">{row.stl}</td>
-                            <td className="px-3 py-3 text-right text-silver-300">{row.blk}</td>
-                            <td className="px-3 py-3 text-right text-silver-500">{row.fgm}-{row.fga}</td>
-                            <td className="px-3 py-3 text-right text-silver-500">{row.tpm}-{row.tpa}</td>
-                            <td className="px-3 py-3 text-right text-silver-500">{row.turnovers}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+      {/* --- MAIN GRID --- */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* Left Column (Stats & Highs) */}
+        <div className="lg:col-span-2 space-y-6">
+
+          {/* Career Totals */}
+          <div className="border border-surface-700 bg-surface-900 rounded p-6">
+            <p className="text-[10px] text-gold font-mono uppercase tracking-[0.2em] mb-4">CAREER STATS</p>
+            <h2 className="text-2xl font-display text-white uppercase tracking-wider mb-6">FULL CAREER TOTALS</h2>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-surface-700 border border-surface-700 mb-6">
+              <div className="bg-surface-950 p-4">
+                <p className="text-[9px] font-mono text-silver-600 uppercase tracking-widest mb-1">GP</p>
+                <p className="text-xl font-mono text-gold">{gamesPlayed}</p>
+                <p className="text-[9px] font-mono text-silver-500 mt-1">{wins}-{losses}</p>
+              </div>
+              <div className="bg-surface-950 p-4">
+                <p className="text-[9px] font-mono text-silver-600 uppercase tracking-widest mb-1">PPG</p>
+                <p className="text-xl font-mono text-white">{ppg}</p>
+                <p className="text-[9px] font-mono text-silver-500 mt-1">POINTS</p>
+              </div>
+              <div className="bg-surface-950 p-4">
+                <p className="text-[9px] font-mono text-silver-600 uppercase tracking-widest mb-1">RPG</p>
+                <p className="text-xl font-mono text-white">{rpg}</p>
+                <p className="text-[9px] font-mono text-silver-500 mt-1">BOARDS</p>
+              </div>
+              <div className="bg-surface-950 p-4">
+                <p className="text-[9px] font-mono text-silver-600 uppercase tracking-widest mb-1">APG</p>
+                <p className="text-xl font-mono text-white">{apg}</p>
+                <p className="text-[9px] font-mono text-silver-500 mt-1">CREATION</p>
+              </div>
+
+              <div className="bg-surface-950 p-4">
+                <p className="text-[9px] font-mono text-silver-600 uppercase tracking-widest mb-1">BPG</p>
+                <p className="text-xl font-mono text-white">{bpg}</p>
+                <p className="text-[9px] font-mono text-silver-500 mt-1">BLOCKS</p>
+              </div>
+              <div className="bg-surface-950 p-4">
+                <p className="text-[9px] font-mono text-silver-600 uppercase tracking-widest mb-1">TOV</p>
+                <p className="text-xl font-mono text-white">{topg}</p>
+                <p className="text-[9px] font-mono text-silver-500 mt-1">PER GAME</p>
+              </div>
+              <div className="bg-surface-950 p-4">
+                <p className="text-[9px] font-mono text-silver-600 uppercase tracking-widest mb-1">FG%</p>
+                <p className="text-xl font-mono text-white">{fgPct}%</p>
+                <p className="text-[9px] font-mono text-silver-500 mt-1">{totalFgm}/{totalFga}</p>
+              </div>
+              <div className="bg-surface-950 p-4">
+                <p className="text-[9px] font-mono text-silver-600 uppercase tracking-widest mb-1">3P%</p>
+                <p className="text-xl font-mono text-white">{tpPct}%</p>
+                <p className="text-[9px] font-mono text-silver-500 mt-1">{totalTpm}/{totalTpa}</p>
+              </div>
+            </div>
+
+            <div className="border border-surface-700 bg-surface-950 rounded p-4 relative overflow-hidden">
+              <p className="text-[9px] text-silver-500 font-mono uppercase tracking-widest mb-4">BOX SCORE ROLLUP</p>
+              <div className="grid grid-cols-4 sm:grid-cols-5 gap-4">
+                <div>
+                  <p className="text-[9px] font-mono text-silver-600 uppercase mb-1">PTS</p>
+                  <p className="text-xl font-mono text-gold">{totalPts}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] font-mono text-silver-600 uppercase mb-1">REB</p>
+                  <p className="text-xl font-mono text-gold">{totalReb}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] font-mono text-silver-600 uppercase mb-1">AST</p>
+                  <p className="text-xl font-mono text-white">{totalAst}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] font-mono text-silver-600 uppercase mb-1">STL</p>
+                  <p className="text-xl font-mono text-white">{totalStl}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] font-mono text-silver-600 uppercase mb-1">BLK</p>
+                  <p className="text-xl font-mono text-white">{totalBlk}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] font-mono text-silver-600 uppercase mb-1">TO</p>
+                  <p className="text-xl font-mono text-white">{totalTov}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] font-mono text-silver-600 uppercase mb-1">FOUL</p>
+                  <p className="text-xl font-mono text-white">-</p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-[9px] font-mono text-silver-600 uppercase mb-1">FGM/FGA</p>
+                  <p className="text-xl font-mono text-white">{totalFgm}/{totalFga}</p>
+                </div>
+                <div className="col-span-1">
+                  <p className="text-[9px] font-mono text-silver-600 uppercase mb-1">3PM/3PA</p>
+                  <p className="text-xl font-mono text-white">{totalTpm}/{totalTpa}</p>
                 </div>
               </div>
-            </section>
-          ))}
-        </div>
-      )}
-
-      {/* ── ACHIEVEMENTS TAB ── */}
-      {activeTab === 'achievements' && (
-        <div className="space-y-6">
-          {!hasAchievements && (
-            <div className="card p-10 text-center">
-              <p className="text-3xl mb-3">🎮</p>
-              <p className="text-silver-500">No achievements yet. Keep grinding!</p>
             </div>
-          )}
+          </div>
 
-          {/* Championship wins */}
-          {champWins.length > 0 && (
-            <section>
-              <h2 className="text-sm font-mono text-gold uppercase tracking-widest mb-3">🏆 Tournament Champion</h2>
-              <div className="space-y-3">
-                {champWins.map((c: any) => (
-                  <div key={c.tournament_id} className="card p-4 border-gold/40 bg-gold/5 flex items-center gap-4">
-                    <span className="text-2xl">🏆</span>
-                    <div>
-                      <p className="text-white font-display tracking-widest">{c.tournament?.name ?? 'Tournament'}</p>
-                      <p className="text-[10px] font-mono text-gold uppercase tracking-widest mt-0.5">
-                        {c.tournament?.championship_award_name ?? 'Champion'}
+          {/* Peak Games */}
+          <div className="border border-surface-700 bg-surface-900 rounded p-6">
+            <p className="text-[10px] text-gold font-mono uppercase tracking-[0.2em] mb-4">CAREER HIGHS</p>
+            <h2 className="text-2xl font-display text-white uppercase tracking-wider mb-6">PEAK GAMES</h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              <HighCard label="HIGH PTS" val={highs.pts} row={highGames.pts} playerTeamId={player.team_id} />
+              <HighCard label="HIGH REB" val={highs.reb} row={highGames.reb} playerTeamId={player.team_id} />
+              <HighCard label="HIGH AST" val={highs.ast} row={highGames.ast} playerTeamId={player.team_id} />
+              <HighCard label="HIGH STL" val={highs.stl} row={highGames.stl} playerTeamId={player.team_id} />
+              <HighCard label="HIGH BLK" val={highs.blk} row={highGames.blk} playerTeamId={player.team_id} />
+              <HighCard label="HIGH FGM" val={highs.fgm} row={highGames.fgm} playerTeamId={player.team_id} />
+              <HighCard label="HIGH 3PM" val={highs.tpm} row={highGames.tpm} playerTeamId={player.team_id} />
+              <HighCard label="HIGH FTM" val={highs.ftm} row={highGames.ftm} playerTeamId={player.team_id} />
+            </div>
+          </div>
+
+          {/* Recent Games */}
+          <div className="border border-surface-700 bg-surface-900 rounded p-6">
+            <p className="text-[10px] text-gold font-mono uppercase tracking-[0.2em] mb-4">MATCH HISTORY / {recentGames.length} RECENT</p>
+            <h2 className="text-2xl font-display text-white uppercase tracking-wider mb-6">RECENT GAMES</h2>
+
+            <div className="space-y-2">
+              {recentGames.length === 0 && <p className="text-silver-600 text-sm font-mono">No games found.</p>}
+              {recentGames.map((row, idx) => {
+                const game = row.game;
+                const isHome = game.home_team_id === row.team_id;
+                const myScore = isHome ? game.home_score : game.away_score;
+                const oppScore = isHome ? game.away_score : game.home_score;
+                const oppName = isHome ? game.away?.name : game.home?.name;
+                const didWin = myScore > oppScore;
+
+                return (
+                  <Link href={`/games/${game.id}`} key={game.id + idx} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border border-surface-700 bg-surface-950 hover:bg-surface-800 transition-colors rounded group">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-6 h-6 flex items-center justify-center rounded font-mono text-[10px] font-bold ${didWin ? 'bg-gold text-black' : 'bg-surface-700 text-silver-400'}`}>
+                        {didWin ? 'W' : 'L'}
+                      </div>
+                      <div>
+                        <p className="text-sm font-display tracking-widest text-white group-hover:text-gold transition-colors uppercase">{oppName || 'TBD'}</p>
+                        <p className="text-[9px] font-mono text-silver-500 uppercase">{game.schedule?.tournament?.name} / {formatDate(game.schedule?.scheduled_date)}</p>
+                      </div>
+                    </div>
+                    <div className="mt-2 sm:mt-0 flex items-center gap-4">
+                      <p className="font-mono text-lg text-white">
+                        <span className={didWin ? 'text-white' : 'text-silver-500'}>{myScore}</span>
+                        <span className="text-silver-600 mx-1">-</span>
+                        <span className={didWin ? 'text-silver-500' : 'text-white'}>{oppScore}</span>
+                      </p>
+                      <p className="text-[9px] font-mono text-silver-400 max-w-[120px] text-right">
+                        {row.pts} PTS / {row.reb} REB / {row.ast} AST / {row.stl} STL
                       </p>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
 
-          {/* Runner-up */}
-          {runnerUps.length > 0 && (
-            <section>
-              <h2 className="text-sm font-mono text-silver-400 uppercase tracking-widest mb-3">🥈 Runner-Up</h2>
+        {/* Right Column (Teams, Accolades) */}
+        <div className="space-y-6">
+          <div className="border border-surface-700 bg-surface-900 rounded p-6">
+            <div className="flex justify-between items-center mb-4">
+              <p className="text-[10px] text-gold font-mono uppercase tracking-[0.2em]">ROSTER ACTIVITY</p>
+              <span className="text-[10px] font-mono bg-surface-950 border border-surface-700 text-silver-400 px-2 py-0.5 rounded">{activeLeagues.length} ACTIVE</span>
+            </div>
+            <h2 className="text-2xl font-display text-white uppercase tracking-wider mb-6">CURRENT TEAMS</h2>
+
+            <div className="space-y-3">
+              {activeLeagues.length === 0 && (
+                <div className="p-4 border border-surface-700 border-dashed bg-surface-800/50 rounded text-center">
+                  <p className="text-sm text-silver-500 font-mono italic">No active rosters.</p>
+                </div>
+              )}
+              {activeLeagues.map((x, idx) => (
+                <div key={idx} className="flex items-center gap-3 p-3 bg-surface-800 border border-surface-700 rounded">
+                  {x.teamLogo ? (
+                    <img src={x.teamLogo} className="w-10 h-10 object-cover rounded bg-surface-900 border border-surface-600" />
+                  ) : (
+                    <div className="w-10 h-10 rounded bg-surface-700 border border-surface-600 flex items-center justify-center"><span className="text-[8px] font-mono">TEAM</span></div>
+                  )}
+                  <div>
+                    <p className="text-sm font-display text-white tracking-widest uppercase">{x.teamName}</p>
+                    <p className="text-[9px] font-mono text-silver-500 uppercase mt-0.5 max-w-[150px] truncate" title={x.tournament?.name}>MEMBER / {x.tournament?.name}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {pastLeagues.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-lg font-display text-silver-400 uppercase tracking-wider mb-4">PAST TEAMS</h2>
+                <div className="space-y-3 opacity-60 hover:opacity-100 transition-opacity">
+                  {pastLeagues.map((x, idx) => (
+                    <div key={'past' + idx} className="flex items-center gap-3 p-3 bg-surface-800 border border-surface-700 rounded">
+                      {x.teamLogo ? (
+                        <img src={x.teamLogo} className="w-10 h-10 object-cover rounded bg-surface-900 border border-surface-600 grayscale" />
+                      ) : (
+                        <div className="w-10 h-10 rounded bg-surface-700 border border-surface-600 flex items-center justify-center"><span className="text-[8px] font-mono">TEAM</span></div>
+                      )}
+                      <div>
+                        <p className="text-sm font-display text-white tracking-widest uppercase">{x.teamName}</p>
+                        <p className="text-[9px] font-mono text-silver-500 uppercase mt-0.5 max-w-[150px] truncate" title={x.tournament?.name}>COMPLETED / {x.tournament?.name}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Accolades & Milestones */}
+          <div className="border border-surface-700 bg-surface-900 rounded p-6">
+            <div className="flex justify-between items-center mb-4">
+              <p className="text-[10px] text-gold font-mono uppercase tracking-[0.2em]">TROPHY CASE</p>
+            </div>
+            <h2 className="text-2xl font-display text-white uppercase tracking-wider mb-6">ACCOLADES & MILESTONES</h2>
+
+            {champWins.length === 0 && runnerUps.length === 0 && (awards ?? []).length === 0 ? (
+              <div className="p-4 border border-surface-700 border-dashed bg-surface-800/50 rounded text-center">
+                <p className="text-sm text-silver-500 font-mono italic">No earned trophies or badges yet.</p>
+              </div>
+            ) : (
               <div className="space-y-3">
-                {runnerUps.map((c: any) => (
-                  <div key={c.tournament_id} className="card p-4 border-surface-600 flex items-center gap-4">
-                    <span className="text-2xl">🥈</span>
+                {champWins.map((c: any, i: number) => (
+                  <div key={'cw' + i} className="flex items-center gap-3 p-3 bg-gradient-to-r from-gold/20 to-transparent border border-gold/30 rounded">
+                    <span className="text-xl">🏆</span>
                     <div>
-                      <p className="text-white font-display tracking-widest">{c.tournament?.name ?? 'Tournament'}</p>
-                      <p className="text-[10px] font-mono text-silver-400 uppercase tracking-widest mt-0.5">Runner-Up</p>
+                      <p className="text-xs font-display text-white tracking-widest uppercase">{c.tournament?.championship_award_name || 'Champion'}</p>
+                      <p className="text-[9px] font-mono text-gold uppercase mt-0.5">{c.tournament?.name}</p>
                     </div>
                   </div>
                 ))}
-              </div>
-            </section>
-          )}
-
-          {/* Awards */}
-          {(awards ?? []).length > 0 && (
-            <section>
-              <h2 className="text-sm font-mono text-silver-400 uppercase tracking-widest mb-3">🌟 Awards</h2>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {(awards ?? []).map((award: any, i) => {
-                  const info = AWARD_LABELS[award.award_type] ?? { label: award.award_type, icon: '🏅' };
-                  const context = award.tournament?.name ?? award.season?.name ?? '';
+                {runnerUps.map((c: any, i: number) => (
+                  <div key={'ru' + i} className="flex items-center gap-3 p-3 bg-surface-800 border border-surface-700 rounded">
+                    <span className="text-xl">🥈</span>
+                    <div>
+                      <p className="text-xs font-display text-silver-300 tracking-widest uppercase">Runner Up</p>
+                      <p className="text-[9px] font-mono text-silver-500 uppercase mt-0.5">{c.tournament?.name}</p>
+                    </div>
+                  </div>
+                ))}
+                {(awards ?? []).map((a: any, i: number) => {
+                  const meta = AWARD_LABELS[a.award_type];
+                  if (!meta) return null;
                   return (
-                    <div key={i} className="card p-4 flex items-center gap-4 hover:border-gold/40 transition-colors">
-                      <span className="text-2xl">{info.icon}</span>
+                    <div key={'aw' + i} className="flex items-center gap-3 p-3 bg-surface-800 border border-surface-700 rounded">
+                      <span className="text-xl">{meta.icon}</span>
                       <div>
-                        <p className="text-white font-display tracking-widest text-sm">{info.label}</p>
-                        {context && <p className="text-[10px] font-mono text-silver-500 uppercase tracking-widest mt-0.5">{context}</p>}
+                        <p className="text-xs font-display text-white tracking-widest uppercase">{meta.label}</p>
+                        <p className="text-[9px] font-mono text-silver-500 uppercase mt-0.5">
+                          {a.tournament ? a.tournament.name : a.season ? a.season.name : 'Pro-Am'}
+                        </p>
                       </div>
                     </div>
                   );
                 })}
               </div>
-            </section>
-          )}
+            )}
+          </div>
+
         </div>
-      )}
+
+      </div>
+    </div>
+  );
+}
+
+function HighCard({ label, val, row, playerTeamId }: { label: string, val: number, row: any, playerTeamId: string | null }) {
+  if (!row) return (
+    <div className="border border-surface-700 bg-surface-900 p-4 rounded">
+      <p className="text-[9px] font-mono text-silver-600 uppercase mb-1">{label}</p>
+      <p className="text-2xl font-mono text-white mb-2">-</p>
+    </div>
+  );
+
+  const game = row.game;
+  const isHome = game.home_team_id === row.team_id;
+  const myScore = isHome ? game.home_score : game.away_score;
+  const oppScore = isHome ? game.away_score : game.home_score;
+  const oppName = isHome ? game.away?.name : game.home?.name;
+
+  return (
+    <div className="border border-surface-700 bg-surface-900 p-4 rounded group hover:border-surface-500 transition-colors">
+      <p className="text-[9px] font-mono text-silver-500 uppercase tracking-widest mb-1">{label}</p>
+      <p className="text-3xl font-mono text-gold mb-3">{val}</p>
+      <p className="text-[10px] font-mono text-white uppercase truncate mb-1" title={oppName}>{oppName || 'TBD'} <span className="text-silver-600">/</span> {myScore}-{oppScore}</p>
+      <p className="text-[9px] font-mono text-silver-500 uppercase truncate mb-3" title={game.schedule?.tournament?.name}>
+        {formatDate(game.schedule?.scheduled_date)} <span className="text-silver-600">/</span> {game.schedule?.tournament?.name}
+      </p>
+      <Link href={`/games/${game.id}`} className="text-[9px] font-mono text-[#4ade80] hover:text-green-300 uppercase tracking-widest transition-colors">
+        VIEW MATCH
+      </Link>
     </div>
   );
 }

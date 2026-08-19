@@ -3,7 +3,7 @@ import BracketTree from '@/components/BracketTree';
 import StandingsTable from '@/components/StandingsTable';
 import BracketSeeder from '@/components/admin/BracketSeeder';
 import SwissGenerator from '@/components/admin/SwissGenerator';
-import Link from 'next/link';
+import Link from '@/components/HiddenLink';
 import BackButton from '@/components/BackButton';
 
 export default async function AdminBracketPage({
@@ -22,7 +22,9 @@ export default async function AdminBracketPage({
     ? tournaments?.find((t) => t.id === searchParams.t) ?? tournaments?.[0]
     : tournaments?.[0];
 
-  const { data: teams } = await supabase.from('teams').select('id, name').order('name');
+  const { data: teams } = active 
+    ? await supabase.from('teams').select('id, name').eq('tournament_id', active.id).order('name')
+    : { data: [] };
 
   const { data: matchups } = active
     ? await supabase

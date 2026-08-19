@@ -1,6 +1,7 @@
-import Link from 'next/link';
+import Link from '@/components/HiddenLink';
 import { createClient } from '@/lib/supabase/server';
 import BackButton from '@/components/BackButton';
+import TournamentSelect from '@/components/TournamentSelect';
 
 const AWARD_TYPES = [
   'BEST_PG', 'BEST_SG', 'BEST_SF', 'BEST_PF', 'BEST_CENTER',
@@ -49,22 +50,11 @@ export default async function AdminAwardsPage({ searchParams }: { searchParams: 
           always selected manually — nothing publishes automatically.
         </p>
 
-        <div className="flex items-center gap-3">
-          <p className="text-sm font-mono text-silver-500 uppercase tracking-widest">Select Tournament:</p>
-          <div className="flex gap-2 flex-wrap">
-            {tournaments?.map(t => (
-              <Link 
-                key={t.id} 
-                href={`/admin/awards?tournament_id=${t.id}`}
-                className={`px-3 py-1 text-xs font-mono uppercase tracking-widest border ${
-                  activeTournamentId === t.id ? 'border-gold text-gold bg-gold/5' : 'border-surface-600 text-silver-400 hover:border-silver-500'
-                }`}
-              >
-                {t.name}
-              </Link>
-            ))}
-          </div>
-        </div>
+        <TournamentSelect 
+          tournaments={tournaments ?? []} 
+          activeId={activeTournamentId} 
+          basePath="/admin/awards" 
+        />
       </div>
 
       {!activeTournamentId ? (
@@ -90,10 +80,9 @@ export default async function AdminAwardsPage({ searchParams }: { searchParams: 
                     </span>
                   </div>
                   <p className="text-xs text-silver-600 font-mono">
-                    {candidateCount > 0
-                      ? `${candidateCount} ranked candidate${candidateCount !== 1 ? 's' : ''}`
+                    {status === 'PUBLISHED' || status === 'FINALIZED'
+                      ? `Winner: ${record?.winner?.gamertag ?? 'Unknown'}`
                       : 'No candidates yet'}
-                    {record?.winner?.gamertag && ` · Winner: ${record.winner.gamertag}`}
                   </p>
                 </div>
                 <Link

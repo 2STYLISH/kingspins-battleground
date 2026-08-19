@@ -20,7 +20,7 @@ h1, h2, h3, h4 {
 
 /* Card surface */
 .card {
-  @apply bg-surface-800 border border-surface-600 rounded-xl;
+  @apply bg-surface-950 border border-surface-700 rounded-xl shadow-lg;
 }
 
 /* Hairline divider */
@@ -85,7 +85,7 @@ h1, h2, h3, h4 {
 
 /* Glow shimmer on card hover */
 .card-hover {
-  @apply card transition-all duration-200 hover:border-silver-500 hover:shadow-[0_0_20px_rgba(255,255,255,0.05)];
+  @apply card transition-all duration-200 hover:border-surface-500 hover:bg-surface-900;
 }
 
 /* Respect reduced-motion preferences site-wide. */
