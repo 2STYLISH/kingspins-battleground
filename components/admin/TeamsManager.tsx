@@ -76,7 +76,7 @@ export default function TeamsManager({
               placeholder="Team name"
               className="input-field"
             />
-            <button onClick={handleCreateTeam} disabled={busy || !newTeamName.trim()} className="btn-primary whitespace-nowrap">
+            <button type="button" onClick={handleCreateTeam} disabled={busy || !newTeamName.trim()} className="btn-primary whitespace-nowrap">
               ADD TEAM
             </button>
           </div>
@@ -228,7 +228,7 @@ function TeamCard({ team, roster, tournamentId, unassignedPlayers }: { team: Tea
           </label>
           <p className="text-base text-white font-display tracking-widest">{team.name}</p>
         </div>
-        <button onClick={handleDeleteTeam} className="text-xs text-silver-600 hover:text-silver-300 transition-colors font-mono">
+        <button type="button" onClick={handleDeleteTeam} className="text-xs text-silver-600 hover:text-silver-300 transition-colors font-mono">
           DELETE TEAM
         </button>
       </div>
@@ -243,6 +243,7 @@ function TeamCard({ team, roster, tournamentId, unassignedPlayers }: { team: Tea
               {p.tier && <span className="text-[10px] text-silver-500 uppercase font-mono tracking-widest">T{p.tier}</span>}
             </div>
             <button
+              type="button"
               onClick={() => handleRemovePlayer(p.id)}
               className="text-[10px] text-silver-700 hover:text-crimson-400 opacity-0 group-hover:opacity-100 transition-all font-mono uppercase tracking-widest"
             >
@@ -271,7 +272,7 @@ function TeamCard({ team, roster, tournamentId, unassignedPlayers }: { team: Tea
               <option key={p.id} value={p.gamertag} />
             ))}
           </datalist>
-          <button onClick={handleAddExistingPlayer} disabled={busy || !searchQuery} className="btn-secondary text-xs px-3 py-1">
+          <button type="button" onClick={handleAddExistingPlayer} disabled={busy || !searchQuery} className="btn-secondary text-xs px-3 py-1">
             ADD
           </button>
         </div>

@@ -16,6 +16,7 @@ export default function BackButton() {
 
   return (
     <button
+      type="button"
       onClick={handleBack}
       className="mb-6 inline-flex items-center gap-2 text-sm text-silver-500 hover:text-white transition-colors group"
     >
