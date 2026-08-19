@@ -27,7 +27,7 @@ export interface ParseResult {
 
 // Server actions have their own execution limits, but we don't want a stalled
 // upstream request to hang the "UPLOAD & ANALYZE" button forever.
-const REQUEST_TIMEOUT_MS = 30_000;
+const REQUEST_TIMEOUT_MS = 45_000;
 
 export async function parseGameScreenshot(imageBase64: string): Promise<ParseResult> {
   // Trim defensively — a stray trailing \r or newline from how the .env file
@@ -47,10 +47,21 @@ export async function parseGameScreenshot(imageBase64: string): Promise<ParseRes
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
+  // IMPORTANT: use the STREAMING endpoint (streamGenerateContent), not
+  // generateContent. When this call is routed through the /api/proxy/gemini
+  // Edge Function (see AI_PROVIDER_BASE_URL), Vercel's Edge runtime requires
+  // a response to *start* within 25 seconds — a non-streaming call makes
+  // Google stay silent until the ENTIRE box-score extraction is done, which
+  // can take longer than that on a detailed screenshot and gets killed with
+  // a 504 FUNCTION_INVOCATION_TIMEOUT before Google ever replies. Streaming
+  // makes Google start sending tokens within a second or two, comfortably
+  // under the 25s limit, and the Edge runtime allows up to 300s of ongoing
+  // streaming after that. This works identically against the real Google
+  // endpoint too (not just through the proxy), so it's safe either way.
   let response: Response;
   try {
     response = await fetch(
-      `${baseUrl}/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      `${baseUrl}/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -103,21 +114,60 @@ export async function parseGameScreenshot(imageBase64: string): Promise<ParseRes
     return { extraction: emptyResult(), error: msg };
   }
 
-  let data: any;
+  // streamGenerateContent?alt=sse sends Server-Sent Events: a series of
+  // "data: {...}\n\n" lines, each one a partial GenerateContentResponse
+  // JSON object holding the next slice of output text. Concatenate every
+  // slice's text, then JSON.parse the fully assembled string at the end —
+  // same final shape as before, just built up incrementally instead of
+  // arriving as one blob.
+  let text = '';
+  let blockReason: string | undefined;
+  let sawAnyChunk = false;
   try {
-    data = await response.json();
-  } catch (parseErr: any) {
-    const msg = `Could not parse Gemini API response as JSON: ${parseErr?.message}`;
+    const reader = response.body?.getReader();
+    if (!reader) throw new Error('Response had no readable body.');
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      // SSE events are separated by a blank line; process complete ones.
+      let sepIndex: number;
+      while ((sepIndex = buffer.indexOf('\n\n')) !== -1) {
+        const rawEvent = buffer.slice(0, sepIndex);
+        buffer = buffer.slice(sepIndex + 2);
+
+        const dataLine = rawEvent.split('\n').find((line) => line.startsWith('data:'));
+        if (!dataLine) continue;
+        const jsonStr = dataLine.slice(5).trim();
+        if (!jsonStr || jsonStr === '[DONE]') continue;
+
+        try {
+          const chunk = JSON.parse(jsonStr);
+          sawAnyChunk = true;
+          const piece = chunk?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (piece) text += piece;
+          if (chunk?.promptFeedback?.blockReason) blockReason = chunk.promptFeedback.blockReason;
+        } catch {
+          // Ignore a single malformed SSE chunk rather than failing the whole stream.
+        }
+      }
+    }
+  } catch (streamErr: any) {
+    const msg = `Error reading Gemini's streamed response: ${streamErr?.message ?? streamErr}`;
     console.error('[screenshot-parser]', msg);
     return { extraction: emptyResult(), error: msg };
   }
 
-  const text: string | undefined = data?.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) {
-    const blockReason = data?.promptFeedback?.blockReason;
     const msg = blockReason
       ? `Gemini blocked this request (reason: ${blockReason}). Try a different screenshot or crop out unrelated UI.`
-      : `Gemini response had no text output. Full response: ${JSON.stringify(data).slice(0, 400)}`;
+      : sawAnyChunk
+        ? 'Gemini streamed a response but it contained no text output.'
+        : 'Gemini returned an empty stream — no data chunks were received.';
     console.error('[screenshot-parser]', msg);
     return { extraction: emptyResult(), error: msg };
   }
