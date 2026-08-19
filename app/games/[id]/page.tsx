@@ -89,7 +89,6 @@ export default async function GameBoxScorePage({ params }: { params: { id: strin
                 <th className="px-3 py-3 text-right font-normal">AST</th>
                 <th className="px-3 py-3 text-right font-normal">STL</th>
                 <th className="px-3 py-3 text-right font-normal">BLK</th>
-                <th className="px-3 py-3 text-right font-normal">FOUL</th>
                 <th className="px-3 py-3 text-right font-normal">TO</th>
                 <th className="px-3 py-3 text-right font-normal">FG</th>
                 <th className="px-3 py-3 text-right font-normal">3PT</th>
@@ -99,7 +98,7 @@ export default async function GameBoxScorePage({ params }: { params: { id: strin
             <tbody>
               {teamStats.length === 0 && (
                 <tr>
-                  <td colSpan={11} className="px-5 py-8 text-silver-600 text-center font-mono">
+                  <td colSpan={10} className="px-5 py-8 text-silver-600 text-center font-mono">
                     No stats recorded.
                   </td>
                 </tr>
@@ -129,7 +128,6 @@ export default async function GameBoxScorePage({ params }: { params: { id: strin
                     <td className="px-3 py-3 text-right text-silver-300">{s.ast}</td>
                     <td className="px-3 py-3 text-right text-silver-300">{s.stl}</td>
                     <td className="px-3 py-3 text-right text-silver-300">{s.blk}</td>
-                    <td className="px-3 py-3 text-right text-silver-500">{s.fouls}</td>
                     <td className="px-3 py-3 text-right text-silver-500">{s.turnovers}</td>
                     <td className="px-3 py-3 text-right text-silver-400">{s.fgm}/{s.fga}</td>
                     <td className="px-3 py-3 text-right text-silver-400">{s.tpm}/{s.tpa}</td>

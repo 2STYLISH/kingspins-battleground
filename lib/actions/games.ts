@@ -143,7 +143,6 @@ export async function saveVerifiedGameStats(input: {
     tpa: number;
     ftm: number;
     fta: number;
-    fouls: number;
     turnovers: number;
   }[];
 }) {

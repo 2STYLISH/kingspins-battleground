@@ -25,24 +25,23 @@ interface StatRow {
   tpa: number;
   ftm: number;
   fta: number;
-  fouls: number;
   turnovers: number;
 }
 
 const FIELDS: (keyof Omit<StatRow, 'playerId' | 'gamertag' | 'didNotPlay'>)[] = [
-  'pts', 'reb', 'ast', 'stl', 'blk', 'fgm', 'fga', 'tpm', 'tpa', 'ftm', 'fta', 'fouls', 'turnovers',
+  'pts', 'reb', 'ast', 'stl', 'blk', 'fgm', 'fga', 'tpm', 'tpa', 'ftm', 'fta', 'turnovers',
 ];
 
 const FIELD_LABELS: Record<string, string> = {
   pts: 'PTS', reb: 'REB', ast: 'AST', stl: 'STL', blk: 'BLK',
-  fgm: 'FGM', fga: 'FGA', tpm: '3PM', tpa: '3PA', ftm: 'FTM', fta: 'FTA', fouls: 'PF', turnovers: 'TO',
+  fgm: 'FGM', fga: 'FGA', tpm: '3PM', tpa: '3PA', ftm: 'FTM', fta: 'FTA', turnovers: 'TO',
 };
 
 function emptyRow(p: RosterPlayer): StatRow {
   return {
     playerId: p.id, gamertag: p.gamertag, didNotPlay: false,
     pts: 0, reb: 0, ast: 0, stl: 0, blk: 0,
-    fgm: 0, fga: 0, tpm: 0, tpa: 0, ftm: 0, fta: 0, fouls: 0, turnovers: 0,
+    fgm: 0, fga: 0, tpm: 0, tpa: 0, ftm: 0, fta: 0, turnovers: 0,
   };
 }
 
@@ -60,7 +59,7 @@ function buildInitialRows(
         pts: existingRow.pts, reb: existingRow.reb, ast: existingRow.ast,
         stl: existingRow.stl, blk: existingRow.blk, fgm: existingRow.fgm,
         fga: existingRow.fga, tpm: existingRow.tpm, tpa: existingRow.tpa,
-        ftm: existingRow.ftm, fta: existingRow.fta, fouls: existingRow.fouls ?? 0,
+        ftm: existingRow.ftm, fta: existingRow.fta,
         turnovers: existingRow.turnovers,
       };
     }
@@ -73,7 +72,7 @@ function buildInitialRows(
         playerId: p.id, gamertag: p.gamertag, didNotPlay: false,
         pts: match.pts, reb: match.reb, ast: match.ast, stl: match.stl, blk: match.blk,
         fgm: match.fgm, fga: match.fga, tpm: match.tpm, tpa: match.tpa,
-        ftm: match.ftm, fta: match.fta, fouls: match.fouls ?? 0, turnovers: match.turnovers,
+        ftm: match.ftm, fta: match.fta, turnovers: match.turnovers,
       };
     }
     return emptyRow(p);
@@ -158,7 +157,7 @@ export default function VerifyStatsForm({
           ...r,
           didNotPlay: nowDNP,
           // Zero out stats when toggling to DNP
-          ...(nowDNP ? { pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, fgm: 0, fga: 0, tpm: 0, tpa: 0, ftm: 0, fta: 0, fouls: 0, turnovers: 0 } : {}),
+          ...(nowDNP ? { pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, fgm: 0, fga: 0, tpm: 0, tpa: 0, ftm: 0, fta: 0, turnovers: 0 } : {}),
         };
       })
     );

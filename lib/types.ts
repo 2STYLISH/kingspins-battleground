@@ -54,7 +54,6 @@ export interface PlayerGameStats {
   tpa: number;
   ftm: number;
   fta: number;
-  fouls: number;
   turnovers: number;
   did_not_play: boolean;
   is_verified: boolean;
@@ -111,7 +110,6 @@ export interface ScreenshotExtractionResult {
     tpa: number;
     ftm: number;
     fta: number;
-    fouls: number;
     turnovers: number;
   }[];
   quarterScores: { quarter: number; home: number; away: number }[];
