@@ -205,14 +205,25 @@ export async function saveVerifiedGameStats(input: {
     const tournamentId = (game.schedules as any)?.tournament_id;
     if (tournamentId && game.home_team_id && game.away_team_id) {
       // 2. Find the bracket matchup matching these two teams
-      // Teams could be in slot A or B, so we check both combinations
-      const { data: matchups } = await supabase
+      // First try exact schedule match
+      let { data: matchups } = await supabase
         .from('bracket_matchups')
         .select('id, tournament_id, bracket_side, round, team_a_id, team_b_id, feeds_into_matchup_id, loser_feeds_into_matchup_id')
-        .eq('tournament_id', tournamentId)
-        .or(`and(team_a_id.eq.${game.home_team_id},team_b_id.eq.${game.away_team_id}),and(team_a_id.eq.${game.away_team_id},team_b_id.eq.${game.home_team_id})`)
-        .order('round', { ascending: true })
+        .eq('schedule_id', game.schedule_id)
         .limit(1);
+
+      // If no exact match (e.g. manually created schedule), try fuzzy matching earliest PENDING matchup
+      if (!matchups || matchups.length === 0) {
+        const { data: fuzzy } = await supabase
+          .from('bracket_matchups')
+          .select('id, tournament_id, bracket_side, round, team_a_id, team_b_id, feeds_into_matchup_id, loser_feeds_into_matchup_id')
+          .eq('tournament_id', tournamentId)
+          .eq('status', 'PENDING')
+          .or(`and(team_a_id.eq.${game.home_team_id},team_b_id.eq.${game.away_team_id}),and(team_a_id.eq.${game.away_team_id},team_b_id.eq.${game.home_team_id})`)
+          .order('round', { ascending: true })
+          .limit(1);
+        matchups = fuzzy;
+      }
 
       const matchup = matchups?.[0];
 
