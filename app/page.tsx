@@ -75,7 +75,7 @@ export default async function HomePage() {
 
         <div className="relative px-8 md:px-16 py-20">
           <p className="text-silver-500 font-mono text-xs tracking-[0.4em] uppercase mb-5">
-            Season 1 · Pro-Am League
+            NBA2K26 · Pro-Am League
           </p>
           <h1 className="text-5xl md:text-7xl leading-[0.92] text-white">
             EVERY GAME
