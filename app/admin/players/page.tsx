@@ -4,7 +4,7 @@ import BackButton from '@/components/BackButton';
 
 export default async function AdminPlayersPage() {
   const supabase = createClient();
-  const { data: players } = await supabase.from('players').select('id, gamertag, position, tier, photo_path').order('tier', { ascending: true, nullsFirst: false }).order('gamertag');
+  const { data: players } = await supabase.from('players').select('id, gamertag, position, tier, photo_path, slug').order('tier', { ascending: true, nullsFirst: false }).order('gamertag');
 
   return (
     <div className="space-y-4">

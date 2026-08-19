@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { createPlayer, deletePlayer, updatePlayerTier, updatePlayerName } from '@/lib/actions/teams';
 import { updatePlayerPhoto } from '@/lib/actions/players';
@@ -13,6 +14,7 @@ interface Player {
   position: string | null;
   tier: number | null;
   photo_path?: string | null;
+  slug?: string;
 }
 
 export default function PlayersManager({ players }: { players: Player[] }) {
@@ -212,10 +214,12 @@ export default function PlayersManager({ players }: { players: Player[] }) {
                     </div>
                   ) : (
                     <div className="flex items-center justify-between group/name">
-                      <span>{p.gamertag}</span>
+                      <Link href={`/${p.slug || p.gamertag.toLowerCase()}`} className="hover:text-gold transition-colors underline decoration-transparent hover:decoration-gold underline-offset-4">
+                        {p.gamertag}
+                      </Link>
                       <button
                         onClick={() => { setEditingId(p.id); setEditName(p.gamertag); }}
-                        className="text-[10px] text-silver-600 hover:text-white opacity-0 group-hover/name:opacity-100 transition-opacity"
+                        className="text-[10px] text-silver-500 hover:text-white transition-opacity font-mono"
                       >
                         EDIT
                       </button>
