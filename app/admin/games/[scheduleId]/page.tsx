@@ -88,8 +88,8 @@ export default async function AdminGameDetailPage({ params }: { params: { schedu
         )}
       </div>
 
-      {/* Stats form — shown when game exists and is not yet verified */}
-      {game && !isVerified && (
+      {/* Stats form — shown when game exists */}
+      {game && (
         <VerifyStatsForm
           gameId={game.id}
           homeTeamId={schedule.home_team_id}
