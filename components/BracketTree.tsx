@@ -80,7 +80,9 @@ function BracketSection({ title, matchups }: { title: string; matchups: Matchup[
         {rounds.map((round) => (
           <div key={round} className="flex flex-col justify-around gap-6 min-w-[220px]">
             <p className="text-xs font-mono text-silver-400 uppercase tracking-widest mb-2">
-              {ROUND_LABELS[round] ?? `ROUND ${round}`}
+              {title === 'GRAND FINAL' 
+                ? (round === 1 ? 'MATCH 1' : 'BRACKET RESET')
+                : (ROUND_LABELS[round] ?? `ROUND ${round}`)}
             </p>
             {matchups
               .filter((m) => m.round === round)
