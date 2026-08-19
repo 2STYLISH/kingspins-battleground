@@ -234,17 +234,19 @@ export default async function PlayerPage({ params }: { params: { slug: string } 
 
             {/* Gamertag & Info */}
             <div className="flex-1">
-              <h1 className="text-6xl md:text-8xl text-white font-display uppercase tracking-widest leading-none mb-3 drop-shadow-lg">
-                {player.gamertag}
-              </h1>
-
-              <div className="flex flex-wrap items-center gap-2 mb-4">
-                {getTierBadge(player.tier)}
+              <div className="flex flex-col md:flex-row md:items-end gap-4 mb-3">
+                <h1 className="text-6xl md:text-8xl text-white font-display uppercase tracking-widest leading-none drop-shadow-lg">
+                  {player.gamertag}
+                </h1>
                 {(roleDisplay || player.position) && (
-                  <span className="inline-block px-3 py-1 bg-surface-800 border border-surface-600 rounded-sm text-[10px] font-mono text-silver-300 uppercase tracking-widest font-bold">
+                  <span className="mb-1 inline-block px-4 py-1.5 bg-surface-800 border border-surface-600 rounded text-xl md:text-3xl font-display text-gold uppercase tracking-widest">
                     {roleDisplay || player.position}
                   </span>
                 )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                {getTierBadge(player.tier)}
               </div>
             </div>
           </div>
