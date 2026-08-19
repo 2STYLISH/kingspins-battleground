@@ -28,6 +28,7 @@ export interface ParseResult {
 export async function parseGameScreenshot(imageBase64: string): Promise<ParseResult> {
   const apiKey = process.env.AI_PROVIDER_API_KEY;
   const model = process.env.AI_PROVIDER_MODEL || 'gemini-3.6-flash';
+  const baseUrl = process.env.AI_PROVIDER_BASE_URL || 'https://generativelanguage.googleapis.com';
 
   if (!apiKey) {
     console.error('[screenshot-parser] AI_PROVIDER_API_KEY is not set in .env');
@@ -39,7 +40,7 @@ export async function parseGameScreenshot(imageBase64: string): Promise<ParseRes
   let response: Response;
   try {
     response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      `${baseUrl}/v1beta/models/${model}:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

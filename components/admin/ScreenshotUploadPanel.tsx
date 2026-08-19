@@ -154,6 +154,12 @@ export default function ScreenshotUploadPanel({
                     (currently set to <code className="text-silver-300 bg-surface-700 px-1 rounded">gemini-3.6-flash</code>)
                   </span>
                 </li>
+                <li className="flex gap-2">
+                  <span className="text-silver-600">④</span>
+                  <span>
+                    <strong className="text-silver-400">Location blocked</strong> — If you see "User location is not supported", set <code className="text-silver-300 bg-surface-700 px-1 rounded">AI_PROVIDER_BASE_URL=</code> in <code className="text-silver-300 bg-surface-700 px-1 rounded">.env</code> to a proxy URL.
+                  </span>
+                </li>
               </ul>
               <p className="text-silver-600 text-xs pt-1">
                 You can still enter stats manually in the form below.
