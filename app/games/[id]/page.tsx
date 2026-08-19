@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
-import { getTierBadge } from '@/lib/utils';
 import BackButton from '@/components/BackButton';
 import Link from 'next/link';
 
