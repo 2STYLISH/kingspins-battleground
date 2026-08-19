@@ -58,10 +58,6 @@ export default function AdminHomePage() {
       <div className="mb-10 pb-8 border-b border-surface-700">
         <p className="text-xs font-mono text-silver-600 uppercase tracking-[0.3em] mb-2">Control Room</p>
         <h1 className="text-4xl text-white mb-2">ADMIN</h1>
-        <p className="text-silver-500 text-sm">
-          Public pages only ever show what you verify or publish here. Award candidates
-          auto-update every time you verify a game.
-        </p>
       </div>
 
       <div className="grid gap-3 md:grid-cols-2">
