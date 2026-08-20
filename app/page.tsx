@@ -47,16 +47,16 @@ export default async function HomePage() {
         {/* Glow top-left */}
         <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-accent/[0.05] blur-3xl pointer-events-none" />
 
-        <div className="relative w-full flex flex-wrap gap-4 z-10 mt-auto">
+        <div className="relative w-full flex flex-wrap justify-center sm:justify-start gap-5 z-10 mt-auto">
           <Link
             href="/schedule"
-            className="px-6 py-2.5 bg-transparent border border-white text-white font-display uppercase tracking-widest rounded transition-colors hover:bg-red-600 hover:border-red-600"
+            className="px-8 py-3.5 bg-red-600 text-white font-display uppercase tracking-[0.2em] rounded-full transition-all duration-300 hover:bg-red-500 hover:shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:-translate-y-1"
           >
             VIEW SCHEDULE
           </Link>
           <Link
             href="/tournaments"
-            className="px-6 py-2.5 bg-transparent border border-white text-white font-display uppercase tracking-widest rounded transition-colors hover:bg-red-600 hover:border-red-600 hover:text-white"
+            className="px-8 py-3.5 bg-surface-900/60 backdrop-blur-md border border-surface-600/50 text-white font-display uppercase tracking-[0.2em] rounded-full transition-all duration-300 hover:bg-surface-800 hover:border-surface-400 hover:shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:-translate-y-1"
           >
             VIEW TOURNAMENTS
           </Link>
