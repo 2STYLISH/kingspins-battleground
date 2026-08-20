@@ -20,19 +20,19 @@ export default async function SchedulePage({ searchParams }: { searchParams: { f
 
   // Group games by tournament ID
   const groupedByTournament = new Map<string, { tournamentName: string, status: string, games: any[] }>();
-  
+
   // Track games without a tournament separately
   const unassignedGames: any[] = [];
 
   (games ?? []).forEach((g) => {
     // Handle Supabase returning arrays for foreign keys
     const tournamentObj = Array.isArray(g.tournament) ? g.tournament[0] : g.tournament;
-    
+
     // Skip games if the tournament is completed
     if (tournamentObj && tournamentObj.status === 'COMPLETED') {
       return;
     }
-    
+
     if (g.tournament_id && tournamentObj) {
       const group = groupedByTournament.get(g.tournament_id) ?? {
         tournamentName: tournamentObj.name,
@@ -59,7 +59,6 @@ export default async function SchedulePage({ searchParams }: { searchParams: { f
     { key: 'all', label: 'All Games' },
     { key: 'regular', label: 'Regular Season' },
     { key: 'playoffs', label: 'Playoffs' },
-    { key: 'tournament', label: 'Tournament' },
   ];
 
   return (
@@ -74,11 +73,10 @@ export default async function SchedulePage({ searchParams }: { searchParams: { f
           <a
             key={f.key}
             href={`/schedule?filter=${f.key}`}
-            className={`px-6 py-2.5 rounded-lg text-xs font-mono uppercase tracking-widest transition-all duration-300 border ${
-              filter === f.key 
-                ? 'bg-gradient-to-r from-red-600 to-red-500 text-white shadow-[0_0_15px_rgba(220,38,38,0.5)] border-red-500/50' 
+            className={`px-6 py-2.5 rounded-lg text-xs font-mono uppercase tracking-widest transition-all duration-300 border ${filter === f.key
+                ? 'bg-gradient-to-r from-red-600 to-red-500 text-white shadow-[0_0_15px_rgba(220,38,38,0.5)] border-red-500/50'
                 : 'border-transparent text-silver-400 hover:text-white hover:bg-surface-800'
-            }`}
+              }`}
           >
             {f.label}
           </a>
@@ -93,19 +91,19 @@ export default async function SchedulePage({ searchParams }: { searchParams: { f
 
       <div className="space-y-6">
         {sortedTournaments.map((t, idx) => (
-          <ScheduleAccordion 
-            key={idx} 
-            tournamentName={t.tournamentName} 
-            games={t.games} 
-            defaultExpanded={['SEEDING', 'IN_PROGRESS'].includes(t.status)} 
+          <ScheduleAccordion
+            key={idx}
+            tournamentName={t.tournamentName}
+            games={t.games}
+            defaultExpanded={['SEEDING', 'IN_PROGRESS'].includes(t.status)}
           />
         ))}
 
         {unassignedGames.length > 0 && (
-          <ScheduleAccordion 
-            tournamentName="Exhibition / Unassigned Games" 
-            games={unassignedGames} 
-            defaultExpanded={true} 
+          <ScheduleAccordion
+            tournamentName="Exhibition / Unassigned Games"
+            games={unassignedGames}
+            defaultExpanded={true}
           />
         )}
       </div>
