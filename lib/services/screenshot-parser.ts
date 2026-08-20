@@ -14,7 +14,7 @@ import type { ScreenshotExtractionResult } from '../types';
  */
 const PROMPT =
   'This is an NBA 2K Pro-Am box score screenshot. Extract team names, final scores, ' +
-  'per-player stats (PTS, REB, AST, STL, BLK, FGM, FGA, 3PM, 3PA, FTM, FTA, TO), and ' +
+  'per-player stats (PTS, REB, AST, STL, BLK, TO, FGM, FGA, 3PM, 3PA, FTM, FTA), and ' +
   'quarter-by-quarter scoring if visible. Respond ONLY with JSON matching this shape: ' +
   '{"teams":[{"name":"","score":0}],"players":[{"gamertag":"","team":"","pts":0,"reb":0,' +
   '"ast":0,"stl":0,"blk":0,"fgm":0,"fga":0,"tpm":0,"tpa":0,"ftm":0,"fta":0,"turnovers":0}],' +
@@ -171,7 +171,7 @@ export async function parseGameScreenshot(imageBase64: string): Promise<ParseRes
                 sawAnyChunk = true;
                 const piece = chunk?.candidates?.[0]?.content?.parts?.[0]?.text;
                 if (piece) text += piece;
-              } catch {}
+              } catch { }
             }
           }
         }

@@ -182,10 +182,10 @@ export default async function TeamDetailPage({ params }: { params: { teamId: str
                           <th className="px-1 text-right">AST</th>
                           <th className="px-1 text-right">STL</th>
                           <th className="px-1 text-right">BLK</th>
+                          <th className="px-1 text-right">TO</th>
                           <th className="px-1 text-right">FGM</th>
                           <th className="px-1 text-right">FGA</th>
                           <th className="px-1 text-right">3PM</th>
-                          <th className="px-1 text-right">TO</th>
                         </tr>
                       </thead>
                       <tbody>

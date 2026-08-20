@@ -35,7 +35,7 @@ const FIELDS: (keyof Omit<StatRow, 'playerId' | 'gamertag' | 'didNotPlay' | 'pos
 
 const FIELD_LABELS: Record<string, string> = {
   pts: 'PTS', reb: 'REB', ast: 'AST', stl: 'STL', blk: 'BLK',
-  fgm: 'FGM', fga: 'FGA', tpm: '3PM', tpa: '3PA', ftm: 'FTM', fta: 'FTA', turnovers: 'TO',
+  turnovers: 'TO', fgm: 'FGM', fga: 'FGA', tpm: '3PM', tpa: '3PA', ftm: 'FTM', fta: 'FTA',
 };
 
 function emptyRow(p: RosterPlayer): StatRow {
@@ -372,8 +372,8 @@ function StatTable({
                   <button
                     onClick={() => onToggleDNP(r.playerId)}
                     className={`w-full h-full px-2 py-3 text-[9px] font-mono font-bold tracking-widest uppercase transition-colors focus:outline-none ${r.didNotPlay
-                        ? 'text-red-500 hover:bg-red-500/10'
-                        : 'text-emerald-500 hover:bg-emerald-500/10'
+                      ? 'text-red-500 hover:bg-red-500/10'
+                      : 'text-emerald-500 hover:bg-emerald-500/10'
                       }`}
                   >
                     {r.didNotPlay ? 'DNP' : 'ACTIVE'}
