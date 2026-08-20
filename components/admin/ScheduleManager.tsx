@@ -17,8 +17,9 @@ export default function ScheduleManager({ games }: { games: any[] }) {
   const [tab, setTab] = useState<'ACTIVE' | 'ARCHIVED'>('ACTIVE');
 
   const filtered = games.filter((g) => {
-    if (tab === 'ACTIVE' && g.is_archived) return false;
-    if (tab === 'ARCHIVED' && !g.is_archived) return false;
+    const isArchived = g.is_archived || g.status === 'COMPLETED';
+    if (tab === 'ACTIVE' && isArchived) return false;
+    if (tab === 'ARCHIVED' && !isArchived) return false;
 
     if (!search.trim()) return true;
     const q = search.toLowerCase();
@@ -166,9 +167,6 @@ function GameRow({ game }: { game: any }) {
             <button onClick={handleDelete} disabled={busy} className="text-xs text-crimson-400 hover:text-crimson-300 font-mono">
               DELETE
             </button>
-            <button onClick={handleToggleArchive} disabled={busy} className="text-xs text-silver-400 hover:text-white font-mono">
-              {game.is_archived ? 'UNARCHIVE' : 'ARCHIVE'}
-            </button>
           </div>
           <div className="flex gap-2">
             <button onClick={() => setEditing(false)} disabled={busy} className="btn-secondary py-1.5 text-xs">CANCEL</button>
@@ -193,12 +191,14 @@ function GameRow({ game }: { game: any }) {
         <span className={`text-[10px] font-mono px-2 py-0.5 rounded uppercase ${STATUS_STYLES[game.status] ?? 'text-silver-500'}`}>
           {game.status}
         </span>
-        <button
-          onClick={() => setEditing(true)}
-          className="text-[10px] font-mono text-silver-500 hover:text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity px-2 py-1 border border-surface-600 rounded"
-        >
-          Edit
-        </button>
+        {game.status !== 'COMPLETED' && (
+          <button
+            onClick={() => setEditing(true)}
+            className="text-[10px] font-mono text-silver-500 hover:text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity px-2 py-1 border border-surface-600 rounded"
+          >
+            Edit
+          </button>
+        )}
       </div>
     </div>
   );

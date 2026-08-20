@@ -7,7 +7,7 @@ export default async function AdminSchedulePage() {
   const supabase = createClient();
 
   const [{ data: tournaments }, { data: rosters }, { data: games }, { data: matchups }] = await Promise.all([
-    supabase.from('tournaments').select('id, name'),
+    supabase.from('tournaments').select('id, name').neq('status', 'COMPLETED'),
     // Fetch all tournament rosters with team names — grouped by tournamentId on the client
     supabase
       .from('tournament_rosters')

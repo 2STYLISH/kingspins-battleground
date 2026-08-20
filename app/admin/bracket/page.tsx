@@ -17,6 +17,7 @@ export default async function AdminBracketPage({
   const { data: tournaments } = await supabase
     .from('tournaments')
     .select('id, name, status, format, match_format')
+    .neq('status', 'COMPLETED')
     .order('created_at', { ascending: false });
 
   const active = searchParams.t
