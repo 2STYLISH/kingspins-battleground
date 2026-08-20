@@ -96,17 +96,17 @@ export default function MatchCenter({ games = [] }: { games: any[] }) {
           </div>
 
           {/* Featured Score block */}
-          <div className="flex items-center justify-between mb-8 flex-col md:flex-row gap-6 relative z-10 w-full">
-            <div className="flex flex-col sm:flex-row items-center gap-4 flex-1 text-center sm:text-left">
+          <div className="flex items-center justify-between mb-8 flex-col md:flex-row gap-4 relative z-10 w-full">
+            <div className="flex flex-col sm:flex-row items-center gap-4 flex-1 text-center sm:text-left min-w-0">
               {fHomeLogo ? (
                 <img src={fHomeLogo} className="w-12 h-12 lg:w-16 lg:h-16 object-cover rounded-full border-2 border-surface-700 bg-surface-900 shadow-lg shrink-0" />
               ) : (
                 <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-surface-900 border-2 border-surface-700 shadow-lg shrink-0"></div>
               )}
-              <span className="text-xl lg:text-2xl font-display text-white tracking-widest drop-shadow-md leading-tight">{fHome}</span>
+              <span className="text-xl lg:text-2xl font-display text-white tracking-widest drop-shadow-md leading-tight break-words min-w-0">{fHome}</span>
             </div>
 
-            <div className="flex items-center gap-4 px-2 sm:px-4 shrink-0">
+            <div className="flex items-center gap-2 sm:gap-4 px-1 sm:px-4 shrink-0">
               <div className={`text-3xl lg:text-5xl font-mono px-3 py-2 lg:px-4 lg:py-2 rounded-xl border-2 shadow-xl ${fHomeWin ? 'bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.3)]' : 'bg-surface-950/80 text-silver-300 border-surface-700/50 backdrop-blur-sm'}`}>
                 {fHomeScore}
               </div>
@@ -116,8 +116,8 @@ export default function MatchCenter({ games = [] }: { games: any[] }) {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center gap-4 flex-1 justify-end text-center sm:text-right">
-              <span className="text-xl lg:text-2xl font-display text-white tracking-widest drop-shadow-md leading-tight order-2 sm:order-1">{fAway}</span>
+            <div className="flex flex-col sm:flex-row items-center gap-4 flex-1 justify-end text-center sm:text-right min-w-0">
+              <span className="text-xl lg:text-2xl font-display text-white tracking-widest drop-shadow-md leading-tight break-words min-w-0 order-2 sm:order-1">{fAway}</span>
               {fAwayLogo ? (
                 <img src={fAwayLogo} className="w-12 h-12 lg:w-16 lg:h-16 object-cover rounded-full border-2 border-surface-700 bg-surface-900 shadow-lg shrink-0 order-1 sm:order-2" />
               ) : (
