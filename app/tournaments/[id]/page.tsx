@@ -30,7 +30,7 @@ export default async function TournamentDashboard({ params }: { params: { id: st
   ] = await Promise.all([
     supabase
       .from('bracket_matchups')
-      .select('id, round, slot, status, winner_id, is_bye, bracket_side, feeds_into_matchup_id, loser_feeds_into_matchup_id, team_a:teams!bracket_matchups_team_a_id_fkey(id,name), team_b:teams!bracket_matchups_team_b_id_fkey(id,name), schedule:schedules(games(id))')
+      .select('id, round, slot, status, match_format, winner_id, is_bye, bracket_side, feeds_into_matchup_id, loser_feeds_into_matchup_id, team_a:teams!bracket_matchups_team_a_id_fkey(id,name), team_b:teams!bracket_matchups_team_b_id_fkey(id,name), series(team_a_wins, team_b_wins), schedule:schedules(games(home_score, away_score))')
       .eq('tournament_id', tournament.id)
       .order('round', { ascending: true })
       .order('slot', { ascending: true }),
@@ -130,7 +130,7 @@ export default async function TournamentDashboard({ params }: { params: { id: st
 
       <section>
         <h2 className="text-xl text-bone mb-3">BRACKET</h2>
-        <BracketTree matchups={(matchups ?? []) as any} />
+        <BracketTree matchups={(matchups ?? []) as any} defaultMatchFormat={tournament.match_format} />
       </section>
 
       <section className="grid md:grid-cols-2 gap-6">

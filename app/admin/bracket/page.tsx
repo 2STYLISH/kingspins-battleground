@@ -16,7 +16,7 @@ export default async function AdminBracketPage({
 
   const { data: tournaments } = await supabase
     .from('tournaments')
-    .select('id, name, status, format')
+    .select('id, name, status, format, match_format')
     .order('created_at', { ascending: false });
 
   const active = searchParams.t
@@ -30,7 +30,7 @@ export default async function AdminBracketPage({
   const { data: matchups } = active
     ? await supabase
         .from('bracket_matchups')
-        .select('id, round, slot, status, winner_id, is_bye, bracket_side, feeds_into_matchup_id, loser_feeds_into_matchup_id, team_a:teams!bracket_matchups_team_a_id_fkey(id,name), team_b:teams!bracket_matchups_team_b_id_fkey(id,name)')
+        .select('id, round, slot, status, winner_id, is_bye, bracket_side, match_format, feeds_into_matchup_id, loser_feeds_into_matchup_id, team_a:teams!bracket_matchups_team_a_id_fkey(id,name), team_b:teams!bracket_matchups_team_b_id_fkey(id,name)')
         .eq('tournament_id', active.id)
         .order('round', { ascending: true })
         .order('slot', { ascending: true })
@@ -103,11 +103,11 @@ export default async function AdminBracketPage({
             <>
               <StandingsTable matchups={(matchups ?? []) as any} teams={teams ?? []} seeds={seeds ?? []} />
               <div className="mt-8">
-                <AdminInteractiveBracket matchups={(matchups ?? []) as any} teams={(teams ?? []) as any} />
+                <AdminInteractiveBracket matchups={(matchups ?? []) as any} teams={(teams ?? []) as any} defaultMatchFormat={active.match_format} />
               </div>
             </>
           ) : (
-            <AdminInteractiveBracket matchups={(matchups ?? []) as any} teams={(teams ?? []) as any} />
+            <AdminInteractiveBracket matchups={(matchups ?? []) as any} teams={(teams ?? []) as any} defaultMatchFormat={active.match_format} />
           )}
 
           {active.format === 'SWISS' && active.status === 'IN_PROGRESS' && (

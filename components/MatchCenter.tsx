@@ -23,8 +23,14 @@ export default function MatchCenter({ games = [] }: { games: any[] }) {
   const itemsPerPage = 4;
   const totalPages = Math.ceil(games.length / itemsPerPage);
 
-  const startIndex = page * itemsPerPage;
-  const currentGames = games.slice(startIndex, startIndex + itemsPerPage);
+  // Fill from the end: the last page should be full first, meaning any remainder goes to the first page.
+  const remainder = games.length % itemsPerPage;
+  const firstPageCount = remainder === 0 || games.length === 0 ? itemsPerPage : remainder;
+
+  const startIndex = page === 0 ? 0 : firstPageCount + (page - 1) * itemsPerPage;
+  const currentCount = page === 0 ? firstPageCount : itemsPerPage;
+  
+  const currentGames = games.slice(startIndex, startIndex + currentCount);
 
   if (currentGames.length === 0) {
     return (

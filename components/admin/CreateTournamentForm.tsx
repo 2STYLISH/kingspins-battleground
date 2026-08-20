@@ -67,25 +67,16 @@ export default function CreateTournamentForm() {
         </div>
       </div>
 
-      {format !== 'PLAYOFFS' && (
-        <div>
-          <label className={labelCls}>Match Format (Series)</label>
-          <select value={matchFormat} onChange={(e) => setMatchFormat(e.target.value as any)} className={inputCls}>
-            <option value="BO1">Best of 1</option>
-            <option value="BO3">Best of 3</option>
-            <option value="BO5">Best of 5</option>
-            <option value="BO7">Best of 7</option>
-          </select>
-        </div>
-      )}
-
-      {format === 'PLAYOFFS' && (
-        <div className="bg-surface-800 p-3 rounded-lg border border-surface-600">
-          <p className="text-xs text-silver-300">
-            <span className="text-gold font-bold">MATCH FORMAT:</span> Play-ins are hardcoded to <strong>Best of 1</strong>. Playoffs are hardcoded to <strong>Best of 3</strong>.
-          </p>
-        </div>
-      )}
+      <div>
+        <label className={labelCls}>Match Format (Default Series Format)</label>
+        <select value={matchFormat} onChange={(e) => setMatchFormat(e.target.value as any)} className={inputCls}>
+          <option value="BO1">Best of 1</option>
+          <option value="BO3">Best of 3</option>
+          <option value="BO5">Best of 5</option>
+          <option value="BO7">Best of 7</option>
+          <option value="TWICE_TO_BEAT">Twice-to-Beat</option>
+        </select>
+      </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>

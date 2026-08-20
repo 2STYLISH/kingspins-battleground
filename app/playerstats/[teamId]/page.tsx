@@ -202,10 +202,10 @@ export default async function TeamDetailPage({ params }: { params: { teamId: str
                               <td className="px-1 text-right text-silver-400">{line.ast}</td>
                               <td className="px-1 text-right text-silver-400">{line.stl}</td>
                               <td className="px-1 text-right text-silver-400">{line.blk}</td>
+                              <td className="px-1 text-right text-silver-400">{line.turnovers}</td>
                               <td className="px-1 text-right text-silver-400">{line.fgm}</td>
                               <td className="px-1 text-right text-silver-400">{line.fga}</td>
                               <td className="px-1 text-right text-silver-400">{line.tpm}</td>
-                              <td className="px-1 text-right text-silver-400">{line.turnovers}</td>
                             </tr>
                           );
                         })}

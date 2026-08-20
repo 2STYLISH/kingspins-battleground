@@ -193,7 +193,7 @@ export async function saveVerifiedGameStats(input: {
   // ── Auto-advance bracket & mark schedule COMPLETED ────────────────────────
   const { data: game } = await supabase
     .from('games')
-    .select('schedule_id, home_team_id, away_team_id, schedules(tournament_id)')
+    .select('schedule_id, home_team_id, away_team_id, series_id, schedules(tournament_id)')
     .eq('id', input.gameId)
     .single();
 
@@ -220,7 +220,7 @@ export async function saveVerifiedGameStats(input: {
           .from('bracket_matchups')
           .select('id, tournament_id, bracket_side, round, team_a_id, team_b_id, feeds_into_matchup_id, loser_feeds_into_matchup_id')
           .eq('tournament_id', tournamentId)
-          .eq('status', 'PENDING')
+          .neq('status', 'COMPLETED')
           .or(`and(team_a_id.eq.${game.home_team_id},team_b_id.eq.${game.away_team_id}),and(team_a_id.eq.${game.away_team_id},team_b_id.eq.${game.home_team_id})`)
           .order('round', { ascending: true })
           .limit(1);
@@ -230,14 +230,73 @@ export async function saveVerifiedGameStats(input: {
       const matchup = matchups?.[0];
 
       if (matchup) {
-        // 3. Determine winner from the scores
-        const winnerId = input.homeScore > input.awayScore ? game.home_team_id : game.away_team_id;
+        // 3. Determine winner of this game
+        const gameWinnerId = input.homeScore > input.awayScore ? game.home_team_id : game.away_team_id;
 
-        // 4. Mark matchup as COMPLETED with winner
-        await supabase
-          .from('bracket_matchups')
-          .update({ winner_id: winnerId, status: 'COMPLETED', schedule_id: game.schedule_id })
-          .eq('id', matchup.id);
+        let seriesWinnerId: string | null = null;
+        let seriesCompleted = true;
+
+        if (game.series_id) {
+          const { data: series } = await supabase.from('series').select('*').eq('id', game.series_id).single();
+          if (series) {
+            // Recalculate wins from all verified games in the series to prevent double-counting on edits
+            const { data: seriesGames } = await supabase
+              .from('games')
+              .select('home_team_id, away_team_id, home_score, away_score')
+              .eq('series_id', series.id)
+              .in('status', ['VERIFIED', 'COMPLETED']);
+
+            let teamAWins = 0;
+            let teamBWins = 0;
+
+            for (const g of seriesGames || []) {
+              const gwId = g.home_score > g.away_score ? g.home_team_id : g.away_team_id;
+              if (gwId === series.team_a_id) teamAWins++;
+              else if (gwId === series.team_b_id) teamBWins++;
+            }
+
+            let requiredWinsA = 1;
+            let requiredWinsB = 1;
+            if (series.match_format === 'BO3') { requiredWinsA = 2; requiredWinsB = 2; }
+            else if (series.match_format === 'BO5') { requiredWinsA = 3; requiredWinsB = 3; }
+            else if (series.match_format === 'BO7') { requiredWinsA = 4; requiredWinsB = 4; }
+            else if (series.match_format === 'TWICE_TO_BEAT') {
+              requiredWinsA = 1; // Team A (upper seed) needs 1 win
+              requiredWinsB = 2; // Team B (lower seed) needs 2 wins
+            }
+
+            if (teamAWins >= requiredWinsA) {
+              seriesWinnerId = series.team_a_id;
+            } else if (teamBWins >= requiredWinsB) {
+              seriesWinnerId = series.team_b_id;
+            } else {
+              seriesCompleted = false;
+            }
+
+            await supabase
+              .from('series')
+              .update({
+                team_a_wins: teamAWins,
+                team_b_wins: teamBWins,
+                status: seriesWinnerId ? 'COMPLETED' : 'IN_PROGRESS',
+                winner_id: seriesWinnerId
+              })
+              .eq('id', series.id);
+            
+            if (seriesWinnerId) {
+              await supabase.from('schedules').update({ status: 'CANCELLED' }).eq('series_id', series.id).eq('status', 'SCHEDULED');
+            }
+          }
+        } else {
+           seriesWinnerId = gameWinnerId;
+        }
+
+        if (seriesCompleted && seriesWinnerId) {
+          // 4. Mark matchup as COMPLETED with winner
+          await supabase
+            .from('bracket_matchups')
+            .update({ winner_id: seriesWinnerId, status: 'COMPLETED', schedule_id: game.schedule_id })
+            .eq('id', matchup.id);
 
         const matchupTeams = [matchup.team_a_id, matchup.team_b_id].filter(Boolean) as string[];
 
@@ -279,28 +338,38 @@ export async function saveVerifiedGameStats(input: {
         }
 
         // 5. Advance winner to next round
-        if (matchup.feeds_into_matchup_id && winnerId) {
-          await propagateTeam(winnerId, matchup.feeds_into_matchup_id, matchupTeams);
+        if (matchup.feeds_into_matchup_id && seriesWinnerId) {
+          await propagateTeam(seriesWinnerId, matchup.feeds_into_matchup_id, matchupTeams);
         }
 
         // 6. Drop loser into Losers bracket (Double Elim)
-        if (matchup.loser_feeds_into_matchup_id && winnerId) {
-          const loserTeamId = matchup.team_a_id === winnerId ? matchup.team_b_id : matchup.team_a_id;
+        if (matchup.loser_feeds_into_matchup_id && seriesWinnerId) {
+          const loserTeamId = matchup.team_a_id === seriesWinnerId ? matchup.team_b_id : matchup.team_a_id;
           if (loserTeamId) {
             await propagateTeam(loserTeamId, matchup.loser_feeds_into_matchup_id, matchupTeams);
           }
         }
 
         // 7. Grand Final: if Losers champion wins, create Bracket Reset match
-        if (matchup.bracket_side === 'GRAND_FINAL' && matchup.round === 1) {
-          const { data: previousMatches } = await supabase
-            .from('bracket_matchups')
-            .select('bracket_side, winner_id')
-            .eq('feeds_into_matchup_id', matchup.id);
+        let isChampionDeclared = false;
+        let finalLoserId = matchup.team_a_id === seriesWinnerId ? matchup.team_b_id : matchup.team_a_id;
 
-          if (previousMatches) {
-            const lbMatch = previousMatches.find(m => m.bracket_side === 'LOSERS');
-            if (lbMatch && lbMatch.winner_id === winnerId) {
+        if (matchup.bracket_side === 'GRAND_FINAL') {
+          if (matchup.round === 1) {
+            const { data: previousMatches } = await supabase
+              .from('bracket_matchups')
+              .select('bracket_side, winner_id')
+              .eq('feeds_into_matchup_id', matchup.id);
+
+            let losersBracketChampWon = false;
+            if (previousMatches) {
+              const lbMatch = previousMatches.find(m => m.bracket_side === 'LOSERS');
+              if (lbMatch && lbMatch.winner_id === seriesWinnerId) {
+                losersBracketChampWon = true;
+              }
+            }
+
+            if (losersBracketChampWon) {
               const { data: existingReset } = await supabase
                 .from('bracket_matchups')
                 .select('id')
@@ -310,14 +379,14 @@ export async function saveVerifiedGameStats(input: {
                 .maybeSingle();
 
               if (!existingReset) {
-                const loserTeamId = matchup.team_a_id === winnerId ? matchup.team_b_id : matchup.team_a_id;
+                const loserTeamId = matchup.team_a_id === seriesWinnerId ? matchup.team_b_id : matchup.team_a_id;
                 const resetInsertRes = await supabase.from('bracket_matchups').insert({
                   tournament_id: matchup.tournament_id,
                   round: 2,
                   slot: 1,
                   status: 'PENDING',
                   bracket_side: 'GRAND_FINAL',
-                  team_a_id: winnerId,
+                  team_a_id: seriesWinnerId,
                   team_b_id: loserTeamId,
                 }).select('id').single();
 
@@ -326,9 +395,43 @@ export async function saveVerifiedGameStats(input: {
                   await ensureScheduleForMatchup(supabase, matchup.tournament_id, resetMatch.id);
                 }
               }
+            } else {
+              // Winners Bracket Champion won Round 1 -> They are the overall Champion!
+              isChampionDeclared = true;
             }
+          } else if (matchup.round === 2) {
+             // Bracket Reset Match concluded -> Whoever wins this is the Champion!
+             isChampionDeclared = true;
           }
         }
+
+        // If it's single elimination and it's the final match
+        if (!matchup.feeds_into_matchup_id && !matchup.loser_feeds_into_matchup_id && matchup.bracket_side !== 'GRAND_FINAL') {
+          // If there is no next match, this might be the finals of a single elim
+          isChampionDeclared = true;
+        }
+
+        if (isChampionDeclared) {
+          // Check if championship already exists to avoid duplicates
+          const { data: existingChamp } = await supabase
+            .from('championships')
+            .select('id')
+            .eq('tournament_id', matchup.tournament_id)
+            .maybeSingle();
+
+          if (!existingChamp) {
+            await supabase.from('championships').insert({
+              tournament_id: matchup.tournament_id,
+              champion_team_id: seriesWinnerId,
+              runner_up_team_id: finalLoserId,
+              final_series_id: game.series_id || null,
+            });
+            // Also mark tournament as completed
+            await supabase.from('tournaments').update({ status: 'COMPLETED' }).eq('id', matchup.tournament_id);
+          }
+        }
+
+        } // End of if (seriesCompleted && seriesWinnerId)
 
         revalidatePath('/bracket');
         revalidatePath('/admin/bracket');

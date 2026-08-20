@@ -105,6 +105,7 @@ create table if not exists bracket_matchups (
   is_bye boolean not null default false,
   bracket_side text default 'WINNERS' check (bracket_side in ('WINNERS', 'LOSERS', 'GRAND_FINAL', 'ROUND_ROBIN', 'SWISS')),
   status text not null default 'PENDING' check (status in ('PENDING', 'SCHEDULED', 'IN_PROGRESS', 'COMPLETED')),
+  match_format text check (match_format in ('BO1', 'BO3', 'BO5', 'BO7', 'TWICE_TO_BEAT')),
   created_at timestamptz not null default now(),
   unique (tournament_id, round, slot, bracket_side)
 );
@@ -114,7 +115,7 @@ create table if not exists series (
   bracket_matchup_id uuid references bracket_matchups(id) on delete cascade,
   team_a_id uuid references teams(id),
   team_b_id uuid references teams(id),
-  match_format text not null check (match_format in ('BO1', 'BO3', 'BO5', 'BO7')),
+  match_format text not null check (match_format in ('BO1', 'BO3', 'BO5', 'BO7', 'TWICE_TO_BEAT')),
   team_a_wins int not null default 0,
   team_b_wins int not null default 0,
   status text not null default 'IN_PROGRESS' check (status in ('IN_PROGRESS', 'COMPLETED')),

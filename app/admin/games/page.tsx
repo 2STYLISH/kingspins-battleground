@@ -48,32 +48,56 @@ export default async function AdminGamesPage() {
             <p className="text-silver-600 text-sm">No games scheduled yet — create one in Schedule.</p>
           </div>
         )}
-        {(schedules ?? []).map((s: any) => {
-          const game = gameBySchedule.get(s.id);
-          const gameStatus = game?.status ?? 'SCHEDULED';
-          const statusStyle = STATUS_STYLES[gameStatus] ?? 'text-silver-600';
-          return (
-            <Link
-              key={s.id}
-              href={`/admin/games/${s.id}`}
-              className="relative group p-5 rounded-2xl border border-surface-700/50 bg-gradient-to-br from-surface-900/80 to-surface-950/80 backdrop-blur-xl shadow-lg hover:shadow-[0_0_25px_rgba(220,38,38,0.15)] hover:border-red-500/40 transition-all duration-300 overflow-hidden flex items-center justify-between"
-            >
-              <div className="absolute top-0 left-0 w-full h-full bg-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-              <div className="relative z-10">
-                <p className="text-[10px] font-mono text-silver-500 uppercase tracking-widest group-hover:text-silver-400 transition-colors">
-                  {s.game_type}
-                  {s.round_label ? ` · ${s.round_label}` : ''} · {formatDate(s.scheduled_date)} {formatTime(s.scheduled_time)}
-                </p>
-                <p className="text-white font-display text-lg mt-1 group-hover:text-red-400 transition-colors">
-                  {s.home?.name ?? 'TBD'} <span className="text-silver-600">vs</span> {s.away?.name ?? 'TBD'}
-                </p>
-              </div>
-              <span className={`relative z-10 text-[10px] font-mono uppercase px-3 py-1 rounded-full border border-surface-600/50 shadow-sm ${statusStyle}`}>
-                {gameStatus.replace(/_/g, ' ')}
-              </span>
-            </Link>
-          );
-        })}
+        {(() => {
+          const combined = (schedules ?? []).map((s: any) => {
+            const game = gameBySchedule.get(s.id);
+            return { ...s, gameStatus: game?.status ?? 'SCHEDULED' };
+          });
+
+          const sortOrder: Record<string, number> = {
+            SCHEDULED: 1,
+            LIVE: 2,
+            AWAITING_STATS: 3,
+            STATS_UNDER_REVIEW: 4,
+            VERIFIED: 9,
+            COMPLETED: 10,
+          };
+
+          combined.sort((a, b) => {
+            const orderA = sortOrder[a.gameStatus] ?? 5;
+            const orderB = sortOrder[b.gameStatus] ?? 5;
+            if (orderA !== orderB) return orderA - orderB;
+            // Tie-breaker: date descending
+            const dateA = new Date(a.scheduled_date + 'T' + a.scheduled_time).getTime();
+            const dateB = new Date(b.scheduled_date + 'T' + b.scheduled_time).getTime();
+            return dateB - dateA;
+          });
+
+          return combined.map((s) => {
+            const statusStyle = STATUS_STYLES[s.gameStatus] ?? 'text-silver-600';
+            return (
+              <Link
+                key={s.id}
+                href={`/admin/games/${s.id}`}
+                className="relative group p-5 rounded-2xl border border-surface-700/50 bg-gradient-to-br from-surface-900/80 to-surface-950/80 backdrop-blur-xl shadow-lg hover:shadow-[0_0_25px_rgba(220,38,38,0.15)] hover:border-red-500/40 transition-all duration-300 overflow-hidden flex items-center justify-between"
+              >
+                <div className="absolute top-0 left-0 w-full h-full bg-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                <div className="relative z-10">
+                  <p className="text-[10px] font-mono text-silver-500 uppercase tracking-widest group-hover:text-silver-400 transition-colors">
+                    {s.game_type}
+                    {s.round_label ? ` · ${s.round_label}` : ''} · {formatDate(s.scheduled_date)} {formatTime(s.scheduled_time)}
+                  </p>
+                  <p className="text-white font-display text-lg mt-1 group-hover:text-red-400 transition-colors">
+                    {s.home?.name ?? 'TBD'} <span className="text-silver-600">vs</span> {s.away?.name ?? 'TBD'}
+                  </p>
+                </div>
+                <span className={`relative z-10 text-[10px] font-mono uppercase px-3 py-1 rounded-full border border-surface-600/50 shadow-sm ${statusStyle}`}>
+                  {s.gameStatus.replace(/_/g, ' ')}
+                </span>
+              </Link>
+            );
+          });
+        })()}
       </div>
     </div>
   );

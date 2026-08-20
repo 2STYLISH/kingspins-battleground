@@ -33,3 +33,9 @@ extracted_text_utf8.txt
 
 # Internal agent task tracking
 task.md
+
+# Database Dumps and Helper Scripts
+kingpins_data_dump.json
+kingpins_backup.sql
+dump_data.js
+delete_demo_data*.js

@@ -22,7 +22,7 @@ export default function EditMatchupModal({
   const [winnerTeamId, setWinnerTeamId] = useState('');
   const [assignTeamA, setAssignTeamA] = useState('');
   const [assignTeamB, setAssignTeamB] = useState('');
-  const [reason, setReason] = useState('');
+  const [matchFormat, setMatchFormat] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -32,7 +32,7 @@ export default function EditMatchupModal({
       setAssignTeamA(matchup.team_a?.id ?? '');
       setAssignTeamB(matchup.team_b?.id ?? '');
       setWinnerTeamId(matchup.winner_id ?? '');
-      setReason('');
+      setMatchFormat((matchup as any).match_format ?? '');
       setError('');
       
       // Smart default action
@@ -49,10 +49,6 @@ export default function EditMatchupModal({
   if (!isOpen || !matchup) return null;
 
   async function handleSubmit() {
-    if (!reason) {
-      setError('A reason is required for the audit log.');
-      return;
-    }
     setSaving(true);
     setError('');
     try {
@@ -62,7 +58,8 @@ export default function EditMatchupModal({
         winnerTeamId: winnerTeamId || undefined, 
         teamAId: assignTeamA || undefined,
         teamBId: assignTeamB || undefined,
-        reason 
+        matchFormat: matchFormat || undefined,
+        reason: 'Admin override from UI'
       });
       onClose();
     } catch (err: any) {
@@ -141,14 +138,15 @@ export default function EditMatchupModal({
           )}
 
           <div>
-            <label className={labelCls}>Reason (required)</label>
-            <textarea
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              className={`${selectCls} h-20 resize-none`}
-              placeholder="e.g. manual seeding, admin correction"
-              required
-            />
+            <label className={labelCls}>Match Format (Series)</label>
+            <select value={matchFormat} onChange={(e) => setMatchFormat(e.target.value as any)} className={selectCls}>
+              <option value="">— Tournament Default —</option>
+              <option value="BO1">Best of 1</option>
+              <option value="BO3">Best of 3</option>
+              <option value="BO5">Best of 5</option>
+              <option value="BO7">Best of 7</option>
+              <option value="TWICE_TO_BEAT">Twice-to-Beat</option>
+            </select>
           </div>
 
           <div className="pt-2 flex gap-3">
@@ -161,7 +159,7 @@ export default function EditMatchupModal({
             </button>
             <button
               onClick={handleSubmit}
-              disabled={saving || !reason}
+              disabled={saving}
               className="flex-1 py-2 rounded bg-crimson text-bone font-medium hover:bg-crimson-600 disabled:opacity-50 transition-colors"
             >
               {saving ? 'SAVING...' : 'CONFIRM OVERRIDE'}

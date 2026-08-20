@@ -22,12 +22,24 @@ export default async function MatchupDetailPage({ params }: { params: { matchupI
     .eq('bracket_matchup_id', params.matchupId)
     .maybeSingle();
 
-  const { data: games } = series
+  const { data: schedules } = series
     ? await supabase
-        .from('games')
-        .select('id, home_score, away_score, status, played_at, home_team_id, away_team_id')
+        .from('schedules')
+        .select(`
+          id, 
+          round_label, 
+          status, 
+          scheduled_date,
+          scheduled_time,
+          games (
+            id,
+            home_score,
+            away_score,
+            status
+          )
+        `)
         .eq('series_id', series.id)
-        .order('played_at', { ascending: true })
+        .order('created_at', { ascending: true })
     : { data: [] };
 
   const teamA = matchup.team_a as any;
@@ -68,22 +80,44 @@ export default async function MatchupDetailPage({ params }: { params: { matchupI
 
           <div>
             <h2 className="text-lg text-bone font-display tracking-wide mb-3">GAMES</h2>
-            {(games ?? []).length === 0 ? (
+            {(schedules ?? []).length === 0 ? (
               <p className="card p-4 text-mute text-sm">No games played yet in this series.</p>
             ) : (
               <div className="grid gap-2">
-                {(games ?? []).map((g, i) => (
-                  <div key={g.id} className="card p-4 flex items-center justify-between">
-                    <p className="text-mute text-xs font-mono uppercase">GAME {i + 1}</p>
-                    {g.status === 'VERIFIED' || g.status === 'COMPLETED' ? (
-                      <p className="text-bone stat-mono">
-                        {g.home_score} — {g.away_score}
+                {(schedules ?? []).map((s, i) => {
+                  const game = Array.isArray(s.games) ? s.games[0] : s.games;
+                  const isCompleted = game && (game.status === 'VERIFIED' || game.status === 'COMPLETED');
+                  const label = s.round_label || `GAME ${i + 1}`;
+                  
+                  const inner = (
+                    <>
+                      <p className={`text-mute text-xs font-mono uppercase transition-colors ${isCompleted ? 'group-hover:text-gold' : ''}`}>
+                        {label}
                       </p>
-                    ) : (
-                      <p className="text-xs font-mono text-gold uppercase">{g.status.replace(/_/g, ' ')}</p>
-                    )}
-                  </div>
-                ))}
+                      {isCompleted ? (
+                        <p className="text-bone stat-mono transition-colors group-hover:text-white">
+                          {game.home_score} — {game.away_score}
+                        </p>
+                      ) : (
+                        <p className="text-xs font-mono text-gold uppercase">{s.status.replace(/_/g, ' ')}</p>
+                      )}
+                    </>
+                  );
+
+                  const className = `card p-4 flex items-center justify-between transition-colors ${
+                    isCompleted ? 'hover:border-surface-600 cursor-pointer group' : ''
+                  }`;
+
+                  return isCompleted ? (
+                    <Link href={`/games/${game.id}`} key={s.id} className={className}>
+                      {inner}
+                    </Link>
+                  ) : (
+                    <div key={s.id} className={className}>
+                      {inner}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

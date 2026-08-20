@@ -15,6 +15,7 @@ export async function overrideBracketMatchup(input: {
   winnerTeamId?: string;
   teamAId?: string;
   teamBId?: string;
+  matchFormat?: string;
   reason: string;
 }) {
   const { isAdmin, user } = await requireAdmin();
@@ -22,6 +23,11 @@ export async function overrideBracketMatchup(input: {
   if (!input.reason?.trim()) throw new Error('A reason is required for every bracket override.');
 
   const supabase = createClient();
+  
+  // Save match_format directly whenever it is provided (in any action context)
+  if (input.matchFormat !== undefined) {
+     await supabase.from('bracket_matchups').update({ match_format: input.matchFormat || null }).eq('id', input.matchupId);
+  }
 
   if (input.action === 'RESET_MATCHUP') {
     await supabase.from('bracket_matchups').update({ winner_id: null, status: 'PENDING' }).eq('id', input.matchupId);

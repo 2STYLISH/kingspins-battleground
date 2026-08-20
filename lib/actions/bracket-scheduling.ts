@@ -16,31 +16,45 @@ export async function ensureScheduleForMatchup(
 ) {
   const { data: matchup } = await supabase
     .from('bracket_matchups')
-    .select('id, round, team_a_id, team_b_id, schedule_id')
+    .select('id, round, team_a_id, team_b_id, schedule_id, match_format, tournaments(match_format)')
     .eq('id', matchupId)
     .single();
 
-  if (!matchup || !matchup.team_a_id || !matchup.team_b_id || matchup.schedule_id) {
+  if (!matchup || !matchup.team_a_id || !matchup.team_b_id) {
     return;
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  const boFormat = matchup.match_format || (matchup.tournaments as any)?.match_format || 'BO1';
+  let numGames = 1;
+  if (boFormat === 'BO3') numGames = 3;
+  else if (boFormat === 'BO5') numGames = 5;
+  else if (boFormat === 'BO7') numGames = 7;
+  else if (boFormat === 'TWICE_TO_BEAT') numGames = 2;
 
-  const { data: schedule, error } = await supabase
-    .from('schedules')
-    .insert({
-      home_team_id: matchup.team_a_id,
-      away_team_id: matchup.team_b_id,
-      tournament_id: tournamentId,
-      game_type: 'TOURNAMENT',
-      round_label: `Round ${matchup.round}`,
-      scheduled_date: today,
-      scheduled_time: '00:00',
-      status: 'SCHEDULED',
-    })
+  // Find or create series
+  let { data: series } = await supabase
+    .from('series')
     .select('id')
-    .single();
-  if (error) throw error;
+    .eq('bracket_matchup_id', matchupId)
+    .maybeSingle();
 
-  await supabase.from('bracket_matchups').update({ schedule_id: schedule.id }).eq('id', matchupId);
+  if (!series) {
+    const { data: newSeries, error: seriesError } = await supabase
+      .from('series')
+      .insert({
+        bracket_matchup_id: matchupId,
+        team_a_id: matchup.team_a_id,
+        team_b_id: matchup.team_b_id,
+        match_format: boFormat,
+        status: 'IN_PROGRESS'
+      })
+      .select('id')
+      .single();
+    if (seriesError) throw seriesError;
+    series = newSeries;
+  }
+
+  // Removed auto-scheduling as requested by admins.
+  // We only create the Series row so the BO format is tracked.
+  // The actual schedules will be linked manually when created via Admin Schedule -> Create Game.
 }

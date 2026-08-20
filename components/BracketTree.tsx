@@ -14,6 +14,7 @@ export type Matchup = {
   sourceB?: string;
   team_a: Team;
   team_b: Team;
+  match_format?: string;
   schedule?: { games?: { id: string }[] };
 };
 
@@ -21,9 +22,11 @@ export type Matchup = {
 
 export default function BracketTree({ 
   matchups,
+  defaultMatchFormat,
   onMatchupClick
 }: { 
   matchups: Matchup[];
+  defaultMatchFormat?: string;
   onMatchupClick?: (matchup: Matchup) => void;
 }) {
   // Sort and assign global match numbers
@@ -79,15 +82,15 @@ export default function BracketTree({
 
   return (
     <div className="space-y-12">
-      {playIns.length > 0 && <BracketSection title="PLAY-IN STAGE" matchups={playIns} onMatchupClick={onMatchupClick} />}
-      <BracketSection title="PLAYOFF BRACKET" matchups={winners} onMatchupClick={onMatchupClick} />
-      {losers.length > 0 && <BracketSection title="LOWER BRACKET" matchups={losers} onMatchupClick={onMatchupClick} />}
-      {grandFinal.length > 0 && <BracketSection title="GRAND FINAL" matchups={grandFinal} onMatchupClick={onMatchupClick} />}
+      {playIns.length > 0 && <BracketSection title="PLAY-IN STAGE" matchups={playIns} onMatchupClick={onMatchupClick} defaultMatchFormat={defaultMatchFormat} />}
+      <BracketSection title="PLAYOFF BRACKET" matchups={winners} onMatchupClick={onMatchupClick} defaultMatchFormat={defaultMatchFormat} />
+      {losers.length > 0 && <BracketSection title="LOWER BRACKET" matchups={losers} onMatchupClick={onMatchupClick} defaultMatchFormat={defaultMatchFormat} />}
+      {grandFinal.length > 0 && <BracketSection title="GRAND FINAL" matchups={grandFinal} onMatchupClick={onMatchupClick} defaultMatchFormat={defaultMatchFormat} />}
     </div>
   );
 }
 
-function BracketSection({ title, matchups, onMatchupClick }: { title: string; matchups: Matchup[]; onMatchupClick?: (matchup: Matchup) => void }) {
+function BracketSection({ title, matchups, onMatchupClick, defaultMatchFormat }: { title: string; matchups: Matchup[]; onMatchupClick?: (matchup: Matchup) => void; defaultMatchFormat?: string }) {
   const rounds = [...new Set(matchups.map((m) => m.round))].sort((a, b) => a - b);
 
   return (
@@ -106,7 +109,7 @@ function BracketSection({ title, matchups, onMatchupClick }: { title: string; ma
           }
 
           return (
-            <div key={round} className="flex flex-col justify-around gap-6 min-w-[220px]">
+            <div key={round} className="flex flex-col justify-around gap-6 min-w-[260px]">
               <p className="text-xs font-mono text-white uppercase tracking-widest mb-2 font-semibold">
                 {label}
               </p>
@@ -114,7 +117,7 @@ function BracketSection({ title, matchups, onMatchupClick }: { title: string; ma
               .filter((m) => m.round === round)
               .sort((a, b) => a.slot - b.slot)
               .map((m) => (
-                <MatchCard key={m.id} matchup={m} onClick={onMatchupClick} />
+                <MatchCard key={m.id} matchup={m} onClick={onMatchupClick} defaultMatchFormat={defaultMatchFormat} />
               ))}
             </div>
           );
@@ -124,17 +127,54 @@ function BracketSection({ title, matchups, onMatchupClick }: { title: string; ma
   );
 }
 
-function MatchCard({ matchup, onClick }: { matchup: Matchup; onClick?: (m: Matchup) => void }) {
+function MatchCard({ matchup, onClick, defaultMatchFormat }: { matchup: Matchup; onClick?: (m: Matchup) => void; defaultMatchFormat?: string }) {
   const isComplete = matchup.status === 'COMPLETED';
-  const gameId = matchup.schedule?.games?.[0]?.id;
-  const href = isComplete && gameId ? `/games/${gameId}` : `/bracket/${matchup.id}`;
+  
+  // ALWAYS link to the Matchup Details page so they can see all games in the series
+  const href = `/bracket/${matchup.id}`;
+
+  const boFormat = matchup.match_format || defaultMatchFormat;
+
+  // Compute Scores
+  let scoreA = null;
+  let scoreB = null;
+  
+  if ((matchup as any).series && (matchup as any).series.length > 0) {
+    // It's a series (BO3, BO5, etc.)
+    const s = (matchup as any).series[0];
+    if (s.team_a_wins > 0 || s.team_b_wins > 0 || matchup.status === 'IN_PROGRESS' || matchup.status === 'COMPLETED') {
+      scoreA = s.team_a_wins;
+      scoreB = s.team_b_wins;
+    }
+  } else if (matchup.schedule) {
+    // It's a BO1
+    const sched = Array.isArray(matchup.schedule) ? matchup.schedule[0] : matchup.schedule;
+    if (sched && sched.games && sched.games.length > 0) {
+      const g = sched.games[0];
+      if (g && g.status !== 'SCHEDULED') {
+        if (matchup.winner_id) {
+          scoreA = matchup.winner_id === matchup.team_a?.id ? 1 : 0;
+          scoreB = matchup.winner_id === matchup.team_b?.id ? 1 : 0;
+        } else {
+          scoreA = 0;
+          scoreB = 0;
+        }
+      }
+    }
+  }
 
   const innerContent = (
     <>
-      <div className="absolute top-2 left-3 text-[10px] font-mono text-silver-500 font-bold drop-shadow-sm group-hover/bracketcard:text-gold transition-colors">{matchup.matchNumber}</div>
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.02),transparent_70%)] pointer-events-none"></div>
-      <TeamRow name={matchup.team_a?.name} isWinner={isComplete && matchup.winner_id === matchup.team_a?.id} isByePlaceholder={matchup.is_bye && !matchup.team_a} placeholderText={matchup.sourceA} />
+      
+      <TeamRow name={matchup.team_a?.name} score={scoreA} isWinner={isComplete && matchup.winner_id === matchup.team_a?.id} isByePlaceholder={matchup.is_bye && !matchup.team_a} placeholderText={matchup.sourceA} />
+      
       <div className="flex items-center gap-2 my-2 relative z-10">
+        {boFormat && (
+          <div className="text-[8px] font-mono font-bold bg-surface-800 text-silver-400 px-1.5 py-0.5 rounded shadow-sm border border-surface-700 uppercase">
+            {boFormat === 'TWICE_TO_BEAT' ? '2x TO BEAT' : boFormat}
+          </div>
+        )}
         <div className="flex-1 border-t border-surface-700/50" />
         <p className={`text-[9px] font-mono font-bold uppercase tracking-widest ${
           matchup.is_bye ? 'text-silver-500' : isComplete ? 'text-emerald-500' : matchup.status === 'SCHEDULED' ? 'text-silver-400' : matchup.team_a && matchup.team_b ? 'text-gold' : 'text-silver-600'
@@ -143,18 +183,22 @@ function MatchCard({ matchup, onClick }: { matchup: Matchup; onClick?: (m: Match
         </p>
         <div className="flex-1 border-t border-surface-700/50" />
       </div>
-      <TeamRow name={matchup.team_b?.name} isWinner={isComplete && matchup.winner_id === matchup.team_b?.id} isByePlaceholder={matchup.is_bye && !matchup.team_b} placeholderText={matchup.sourceB} />
+      
+      <TeamRow name={matchup.team_b?.name} score={scoreB} isWinner={isComplete && matchup.winner_id === matchup.team_b?.id} isByePlaceholder={matchup.is_bye && !matchup.team_b} placeholderText={matchup.sourceB} />
     </>
   );
 
   return (
-    <div className="relative group/bracketcard">
+    <div className="relative group/bracketcard ml-6">
+      <div className="absolute -left-7 top-1/2 -translate-y-1/2 text-sm font-mono font-bold transition-colors text-[#b8860b] drop-shadow-md group-hover/bracketcard:text-gold w-6 text-right pr-2">
+        {matchup.matchNumber}
+      </div>
       {onClick ? (
-        <button onClick={() => onClick(matchup)} className="w-full text-left relative border border-surface-600 bg-surface-950/80 backdrop-blur-md p-4 block hover:border-gold/50 hover:shadow-[0_0_20px_rgba(255,215,0,0.15)] transition-all rounded-xl shadow-2xl cursor-pointer overflow-hidden">
+        <button onClick={() => onClick(matchup)} className="w-full text-left relative border border-surface-600 bg-surface-950/80 backdrop-blur-md p-4 block hover:border-gold/50 hover:shadow-[0_0_20px_rgba(255,215,0,0.15)] transition-all rounded-xl shadow-2xl cursor-pointer overflow-hidden z-10">
           {innerContent}
         </button>
       ) : (
-        <a href={href} className="w-full text-left relative border border-surface-600 bg-surface-950/80 backdrop-blur-md p-4 block hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all rounded-xl shadow-2xl overflow-hidden">
+        <a href={href} className="w-full text-left relative border border-surface-600 bg-surface-950/80 backdrop-blur-md p-4 block hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all rounded-xl shadow-2xl overflow-hidden z-10">
           {innerContent}
         </a>
       )}
@@ -162,13 +206,16 @@ function MatchCard({ matchup, onClick }: { matchup: Matchup; onClick?: (m: Match
   );
 }
 
-function TeamRow({ name, isWinner, isByePlaceholder, placeholderText }: { name?: string; isWinner: boolean; isByePlaceholder?: boolean; placeholderText?: string }) {
+function TeamRow({ name, score, isWinner, isByePlaceholder, placeholderText }: { name?: string; score?: number | null; isWinner: boolean; isByePlaceholder?: boolean; placeholderText?: string }) {
   if (isByePlaceholder) {
     return <p className="text-sm font-display tracking-widest text-silver-500 italic uppercase text-center">BYE</p>;
   }
   return (
-    <p className={`text-sm font-display tracking-widest uppercase truncate relative z-10 text-center ${isWinner ? 'text-emerald-400 font-bold drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'text-white'} ${!name ? 'text-silver-500 italic text-[12px]' : ''}`}>
-      {name ?? placeholderText ?? 'TBD'}
-    </p>
+    <div className={`flex items-center justify-between text-sm font-display tracking-widest uppercase truncate relative z-10 ${isWinner ? 'text-emerald-400 font-bold drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'text-white'} ${!name ? 'text-silver-500 italic text-[12px]' : ''}`}>
+      <span className="truncate">{name ?? placeholderText ?? 'TBD'}</span>
+      {score !== undefined && score !== null && (
+        <span className="ml-2 font-mono text-[16px] text-white bg-surface-900/50 px-2 py-0.5 rounded shadow-inner border border-surface-700/50">{score}</span>
+      )}
+    </div>
   );
 }

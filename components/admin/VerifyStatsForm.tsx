@@ -30,7 +30,7 @@ interface StatRow {
 }
 
 const FIELDS: (keyof Omit<StatRow, 'playerId' | 'gamertag' | 'didNotPlay' | 'position'>)[] = [
-  'pts', 'reb', 'ast', 'stl', 'blk', 'fgm', 'fga', 'tpm', 'tpa', 'ftm', 'fta', 'turnovers',
+  'pts', 'reb', 'ast', 'stl', 'blk', 'turnovers', 'fgm', 'fga', 'tpm', 'tpa', 'ftm', 'fta',
 ];
 
 const FIELD_LABELS: Record<string, string> = {

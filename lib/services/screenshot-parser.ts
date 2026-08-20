@@ -17,7 +17,7 @@ const PROMPT =
   'per-player stats (PTS, REB, AST, STL, BLK, TO, FGM, FGA, 3PM, 3PA, FTM, FTA), and ' +
   'quarter-by-quarter scoring if visible. Respond ONLY with JSON matching this shape: ' +
   '{"teams":[{"name":"","score":0}],"players":[{"gamertag":"","team":"","pts":0,"reb":0,' +
-  '"ast":0,"stl":0,"blk":0,"fgm":0,"fga":0,"tpm":0,"tpa":0,"ftm":0,"fta":0,"turnovers":0}],' +
+  '"ast":0,"stl":0,"blk":0,"turnovers":0,"fgm":0,"fga":0,"tpm":0,"tpa":0,"ftm":0,"fta":0}],' +
   '"quarterScores":[{"quarter":1,"home":0,"away":0}],"confidence":0.0}. No prose, no markdown fences.';
 
 export interface ParseResult {
