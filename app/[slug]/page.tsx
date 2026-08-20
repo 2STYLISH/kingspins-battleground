@@ -606,7 +606,7 @@ function HighCard({ label, val, row, playerTeamId }: { label: string, val: numbe
       <p className="text-[9px] font-mono text-silver-500 uppercase truncate mb-3" title={tournament?.name}>
         {formatDate(schedule?.scheduled_date)} <span className="text-silver-600">/</span> {tournament?.name}
       </p>
-      <Link href={`/games/${game.id}`} className="text-[9px] font-mono text-[#4ade80] hover:text-green-300 uppercase tracking-widest transition-colors">
+      <Link href={`/games/${game.id}`} className="inline-block bg-black text-white hover:text-gold border border-surface-700 hover:border-surface-500 px-3 py-1.5 rounded text-[9px] font-mono uppercase tracking-widest transition-colors shadow-sm">
         VIEW MATCH
       </Link>
     </div>
