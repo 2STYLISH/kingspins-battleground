@@ -59,21 +59,27 @@ export default function AdminHomePage() {
         <h1 className="text-4xl text-white mb-2">CONTROL ROOM</h1>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2">
         {SECTIONS.map((s) => (
           <Link
             key={s.href}
             href={s.href}
-            className="card-hover p-5 flex items-start gap-4 group"
+            className="relative group p-6 rounded-2xl border border-surface-700/50 bg-gradient-to-br from-surface-900/80 to-surface-950/80 backdrop-blur-xl shadow-lg hover:shadow-[0_0_25px_rgba(220,38,38,0.15)] hover:border-red-500/40 transition-all duration-300 overflow-hidden flex items-start gap-5"
           >
-            <span className="text-2xl mt-0.5 opacity-70 group-hover:opacity-100 transition-opacity">
-              {s.icon}
-            </span>
-            <div>
-              <p className="text-sm text-white font-display tracking-widest mb-1 group-hover:text-silver-100 transition-colors">
+            {/* Background Glow */}
+            <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-red-500/10 rounded-full blur-3xl group-hover:bg-red-500/20 transition-colors"></div>
+
+            <div className="relative z-10 w-12 h-12 shrink-0 rounded-xl bg-surface-900 border border-surface-700/50 shadow-inner flex items-center justify-center text-2xl group-hover:scale-110 group-hover:border-red-500/30 transition-all duration-300">
+              <span className="opacity-80 group-hover:opacity-100 transition-opacity drop-shadow-md">
+                {s.icon}
+              </span>
+            </div>
+            
+            <div className="relative z-10 flex-1 pt-1">
+              <p className="text-sm text-white font-display tracking-widest mb-1.5 group-hover:text-red-400 transition-colors drop-shadow-sm">
                 {s.title}
               </p>
-              <p className="text-sm text-silver-500 leading-relaxed">{s.desc}</p>
+              <p className="text-xs text-silver-500 leading-relaxed font-mono tracking-wide">{s.desc}</p>
             </div>
           </Link>
         ))}

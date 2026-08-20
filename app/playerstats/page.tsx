@@ -28,20 +28,20 @@ function getTierBadge(tier: number | null) {
 
 function TabHeader({ activeTab, activeTournamentId }: { activeTab: string; activeTournamentId: string }) {
   return (
-    <div>
-      <p className="text-[10px] text-[#b8860b] font-mono uppercase tracking-[0.3em] mb-2">BATTLEGROUND LEADERBOARDS</p>
-      <h1 className="text-5xl text-white font-display tracking-widest uppercase mb-2 drop-shadow-[0_0_15px_rgba(229,0,0,0.3)]">PLAYER STATS</h1>
-      <div className="flex gap-2 border-b border-surface-700 pb-px">
+    <div className="mb-6">
+      <p className="text-[10px] text-gold font-mono uppercase tracking-[0.4em] mb-2 font-bold drop-shadow-sm">Battleground Leaderboards</p>
+      <h1 className="text-5xl md:text-6xl text-white font-display tracking-widest uppercase mb-8 drop-shadow-[0_0_20px_rgba(255,215,0,0.15)]">Player Stats</h1>
+      <div className="inline-flex flex-wrap gap-2 md:gap-0 bg-surface-900/60 backdrop-blur-md p-1.5 rounded-xl border border-surface-700/50 shadow-inner">
         <Link
           href={`/playerstats?tab=tournaments${activeTournamentId ? `&t=${activeTournamentId}` : ''}`}
-          className={`px-4 py-2 text-xs font-mono uppercase tracking-widest border-b-2 transition-colors ${activeTab === 'tournaments' ? 'border-[#b8860b] text-[#b8860b]' : 'border-transparent text-silver-500 hover:text-red-600'
+          className={`px-6 py-2.5 text-xs font-mono uppercase tracking-widest rounded-lg transition-all duration-300 ${activeTab === 'tournaments' ? 'bg-gradient-to-r from-red-600 to-red-500 text-white shadow-[0_0_15px_rgba(220,38,38,0.5)] border border-red-500/50' : 'text-silver-400 hover:text-white hover:bg-surface-800'
             }`}
         >
           Tournaments
         </Link>
         <Link
           href={`/playerstats?tab=all`}
-          className={`px-4 py-2 text-xs font-mono uppercase tracking-widest border-b-2 transition-colors ${activeTab === 'all' ? 'border-[#b8860b] text-[#b8860b]' : 'border-transparent text-silver-500 hover:text-red-600'
+          className={`px-6 py-2.5 text-xs font-mono uppercase tracking-widest rounded-lg transition-all duration-300 ${activeTab === 'all' ? 'bg-gradient-to-r from-red-600 to-red-500 text-white shadow-[0_0_15px_rgba(220,38,38,0.5)] border border-red-500/50' : 'text-silver-400 hover:text-white hover:bg-surface-800'
             }`}
         >
           Overall Stats
@@ -109,50 +109,50 @@ export default async function StatsPage({ searchParams }: { searchParams: { tab?
       <div className="space-y-8">
         <TabHeader activeTab="all" activeTournamentId={activeTournamentId} />
         <section>
-          <div className="bg-[#080808]/90 backdrop-blur-sm border border-surface-700 rounded overflow-hidden shadow-lg">
+          <div className="relative rounded-2xl overflow-hidden bg-surface-950/80 backdrop-blur-md border border-surface-700/50 hover:border-surface-600/80 transition-colors shadow-2xl">
             <div className="overflow-x-auto">
-              <table className="w-full text-xs font-mono">
+              <table className="w-full text-xs font-mono stat-mono">
                 <thead>
-                  <tr className="bg-[#111] border-b border-surface-700 text-red-600 uppercase tracking-widest text-[10px]">
-                    <th className="text-left px-5 py-4 w-8">#</th>
-                    <th className="text-left px-4 py-3 font-mono">Player</th>
-                    <th className="text-left px-4 py-3 font-mono">Team</th>
-                    <th className="px-3 py-3 text-right">GP</th>
-                    <th className="px-3 py-3 text-right">PPG</th>
-                    <th className="px-3 py-3 text-right">RPG</th>
-                    <th className="px-3 py-3 text-right">APG</th>
-                    <th className="px-3 py-3 text-right">SPG</th>
-                    <th className="px-3 py-3 text-right">BPG</th>
-                    <th className="px-3 py-3 text-right">FG%</th>
-                    <th className="px-3 py-3 text-right">3P%</th>
-                    <th className="px-3 py-3 text-right">FT%</th>
+                  <tr className="bg-surface-900/40 text-[9px] text-silver-500 uppercase tracking-widest border-b border-surface-800/80">
+                    <th className="text-left px-6 py-4 w-10 font-medium">#</th>
+                    <th className="text-left px-4 py-4 font-medium hover:text-white transition-colors cursor-default">Player</th>
+                    <th className="text-left px-4 py-4 font-medium hover:text-white transition-colors cursor-default">Team</th>
+                    <th className="px-4 py-4 text-right font-medium hover:text-white transition-colors cursor-default">GP</th>
+                    <th className="px-4 py-4 text-right font-medium hover:text-white transition-colors cursor-default">PPG</th>
+                    <th className="px-4 py-4 text-right font-medium hover:text-white transition-colors cursor-default">RPG</th>
+                    <th className="px-4 py-4 text-right font-medium hover:text-white transition-colors cursor-default">APG</th>
+                    <th className="px-4 py-4 text-right font-medium hover:text-white transition-colors cursor-default">SPG</th>
+                    <th className="px-4 py-4 text-right font-medium hover:text-white transition-colors cursor-default">BPG</th>
+                    <th className="px-4 py-4 text-right font-medium hover:text-white transition-colors cursor-default">FG%</th>
+                    <th className="px-4 py-4 text-right font-medium hover:text-white transition-colors cursor-default">3P%</th>
+                    <th className="px-4 py-4 text-right font-medium hover:text-white transition-colors cursor-default">FT%</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-surface-800/30">
                   {rows.length === 0 && (
-                    <tr><td colSpan={12} className="px-5 py-8 text-silver-600 text-center">No verified stats yet.</td></tr>
+                    <tr><td colSpan={12} className="px-6 py-10 text-silver-600 text-center uppercase tracking-widest text-[10px]">No verified stats yet.</td></tr>
                   )}
                   {rows.map(({ player, avg, teamName }, idx) => (
-                    <tr key={player.id} className="border-b border-surface-800 last:border-0 hover:bg-surface-800 transition-colors group">
-                      <td className="px-5 py-4 text-[#b8860b] text-[10px] font-bold">{idx + 1}</td>
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-2">
-                          <Link href={`/${player.slug || player.gamertag.toLowerCase()}`} className="text-white font-display tracking-widest uppercase group-hover:text-red-600 transition-colors">
+                    <tr key={player.id} className="group/row transition-all hover:bg-surface-800/40">
+                      <td className="px-6 py-4 text-gold text-[10px] font-bold opacity-70">{idx + 1}</td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-3">
+                          <Link href={`/${player.slug || player.gamertag.toLowerCase()}`} className="text-silver-200 font-body group-hover/row:text-white transition-colors">
                             {player.gamertag}
                           </Link>
                           {getTierBadge(player.tier)}
                         </div>
                       </td>
-                      <td className="px-5 py-4 text-silver-500 font-mono text-[10px] uppercase tracking-widest">{teamName}</td>
-                      <td className="px-3 py-3 text-right text-silver-400">{avg.gamesPlayed}</td>
-                      <td className="px-3 py-3 text-right text-white font-semibold">{avg.ppg}</td>
-                      <td className="px-3 py-3 text-right text-silver-300">{avg.rpg}</td>
-                      <td className="px-3 py-3 text-right text-silver-300">{avg.apg}</td>
-                      <td className="px-3 py-3 text-right text-silver-300">{avg.spg}</td>
-                      <td className="px-3 py-3 text-right text-silver-300">{avg.bpg}</td>
-                      <td className="px-3 py-3 text-right text-silver-400">{avg.fgPct}%</td>
-                      <td className="px-3 py-3 text-right text-silver-400">{avg.tpPct}%</td>
-                      <td className="px-3 py-3 text-right text-silver-400">{avg.ftPct}%</td>
+                      <td className="px-4 py-4 text-silver-500 font-mono text-[9px] uppercase tracking-widest group-hover/row:text-silver-300 transition-colors">{teamName}</td>
+                      <td className="px-4 py-4 text-right text-silver-400 group-hover/row:text-silver-200 transition-colors">{avg.gamesPlayed}</td>
+                      <td className="px-4 py-4 text-right text-white font-bold text-sm">{avg.ppg}</td>
+                      <td className="px-4 py-4 text-right text-silver-300 group-hover/row:text-silver-100 transition-colors">{avg.rpg}</td>
+                      <td className="px-4 py-4 text-right text-silver-300 group-hover/row:text-silver-100 transition-colors">{avg.apg}</td>
+                      <td className="px-4 py-4 text-right text-silver-300 group-hover/row:text-silver-100 transition-colors">{avg.spg}</td>
+                      <td className="px-4 py-4 text-right text-silver-300 group-hover/row:text-silver-100 transition-colors">{avg.bpg}</td>
+                      <td className="px-4 py-4 text-right text-silver-400 group-hover/row:text-silver-200 transition-colors">{avg.fgPct}%</td>
+                      <td className="px-4 py-4 text-right text-silver-400 group-hover/row:text-silver-200 transition-colors">{avg.tpPct}%</td>
+                      <td className="px-4 py-4 text-right text-silver-400 group-hover/row:text-silver-200 transition-colors">{avg.ftPct}%</td>
                     </tr>
                   ))}
                 </tbody>
@@ -274,52 +274,52 @@ export default async function StatsPage({ searchParams }: { searchParams: { tab?
         {[...teamMap.entries()].map(([teamId, { teamName, players: teamPlayers }]) => (
           <section key={teamId}>
             <h3 className="text-lg text-[#b8860b] font-display tracking-widest mb-3">{teamName}</h3>
-            <div className="bg-[#080808]/90 backdrop-blur-sm border border-surface-700 rounded overflow-hidden shadow-lg">
+            <div className="relative rounded-2xl overflow-hidden bg-surface-950/80 backdrop-blur-md border border-surface-700/50 hover:border-surface-600/80 transition-colors shadow-2xl">
               <div className="overflow-x-auto">
-                <table className="w-full text-xs font-mono">
+                <table className="w-full text-xs font-mono stat-mono">
                   <thead>
-                    <tr className="bg-[#111] border-b border-surface-700 text-red-600 uppercase tracking-widest text-[10px]">
-                      <th className="text-left px-5 py-4">Player</th>
-                      <th className="px-3 py-4 text-right">GP</th>
-                      <th className="px-3 py-4 text-right">PPG</th>
-                      <th className="px-3 py-4 text-right">RPG</th>
-                      <th className="px-3 py-4 text-right">APG</th>
-                      <th className="px-3 py-4 text-right">SPG</th>
-                      <th className="px-3 py-4 text-right">BPG</th>
-                      <th className="px-3 py-4 text-right">FG%</th>
-                      <th className="px-3 py-4 text-right">3P%</th>
-                      <th className="px-3 py-4 text-right">FT%</th>
+                    <tr className="bg-surface-900/40 text-[9px] text-silver-500 uppercase tracking-widest border-b border-surface-800/80">
+                      <th className="text-left px-6 py-4 font-medium">Player</th>
+                      <th className="px-4 py-4 text-right font-medium hover:text-white transition-colors cursor-default">GP</th>
+                      <th className="px-4 py-4 text-right font-medium hover:text-white transition-colors cursor-default">PPG</th>
+                      <th className="px-4 py-4 text-right font-medium hover:text-white transition-colors cursor-default">RPG</th>
+                      <th className="px-4 py-4 text-right font-medium hover:text-white transition-colors cursor-default">APG</th>
+                      <th className="px-4 py-4 text-right font-medium hover:text-white transition-colors cursor-default">SPG</th>
+                      <th className="px-4 py-4 text-right font-medium hover:text-white transition-colors cursor-default">BPG</th>
+                      <th className="px-4 py-4 text-right font-medium hover:text-white transition-colors cursor-default">FG%</th>
+                      <th className="px-4 py-4 text-right font-medium hover:text-white transition-colors cursor-default">3P%</th>
+                      <th className="px-4 py-4 text-right font-medium hover:text-white transition-colors cursor-default">FT%</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-surface-800/30">
                     {teamPlayers.length === 0 && (
-                      <tr><td colSpan={10} className="px-5 py-6 text-silver-600 text-center">No stats yet.</td></tr>
+                      <tr><td colSpan={10} className="px-6 py-10 text-silver-600 text-center uppercase tracking-widest text-[10px]">No stats yet.</td></tr>
                     )}
                     {teamPlayers.map(({ player, avg }) => (
-                      <tr key={player.id} className="border-b border-surface-800 last:border-0 hover:bg-surface-800 transition-colors group">
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-2">
-                            <Link href={`/${player.slug || player.gamertag.toLowerCase()}`} className="text-white font-display tracking-widest uppercase group-hover:text-red-600 transition-colors">
+                      <tr key={player.id} className="group/row transition-all hover:bg-surface-800/40">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            {player.position && <span className="w-7 text-center text-[9px] bg-surface-900 text-silver-400 border border-surface-700 rounded px-1 py-1 uppercase tracking-widest font-bold group-hover/row:border-silver-500 transition-colors">{player.position.slice(0, 2)}</span>}
+                            <Link href={`/${player.slug || player.gamertag.toLowerCase()}`} className="text-silver-200 font-body group-hover/row:text-white transition-colors">
                               {player.gamertag}
                             </Link>
                             {getTierBadge(player.tier)}
-                            {player.position && <span className="text-[10px] text-silver-600 uppercase font-mono tracking-widest">{player.position}</span>}
                           </div>
                         </td>
                         {avg ? (
                           <>
-                            <td className="px-3 py-3 text-right text-silver-400">{avg.gamesPlayed}</td>
-                            <td className="px-3 py-3 text-right text-white font-semibold">{avg.ppg}</td>
-                            <td className="px-3 py-3 text-right text-silver-300">{avg.rpg}</td>
-                            <td className="px-3 py-3 text-right text-silver-300">{avg.apg}</td>
-                            <td className="px-3 py-3 text-right text-silver-300">{avg.spg}</td>
-                            <td className="px-3 py-3 text-right text-silver-300">{avg.bpg}</td>
-                            <td className="px-3 py-3 text-right text-silver-400">{avg.fgPct}%</td>
-                            <td className="px-3 py-3 text-right text-silver-400">{avg.tpPct}%</td>
-                            <td className="px-3 py-3 text-right text-silver-400">{avg.ftPct}%</td>
+                            <td className="px-4 py-4 text-right text-silver-400 group-hover/row:text-silver-200 transition-colors">{avg.gamesPlayed}</td>
+                            <td className="px-4 py-4 text-right text-white font-bold text-sm">{avg.ppg}</td>
+                            <td className="px-4 py-4 text-right text-silver-300 group-hover/row:text-silver-100 transition-colors">{avg.rpg}</td>
+                            <td className="px-4 py-4 text-right text-silver-300 group-hover/row:text-silver-100 transition-colors">{avg.apg}</td>
+                            <td className="px-4 py-4 text-right text-silver-300 group-hover/row:text-silver-100 transition-colors">{avg.spg}</td>
+                            <td className="px-4 py-4 text-right text-silver-300 group-hover/row:text-silver-100 transition-colors">{avg.bpg}</td>
+                            <td className="px-4 py-4 text-right text-silver-400 group-hover/row:text-silver-200 transition-colors">{avg.fgPct}%</td>
+                            <td className="px-4 py-4 text-right text-silver-400 group-hover/row:text-silver-200 transition-colors">{avg.tpPct}%</td>
+                            <td className="px-4 py-4 text-right text-silver-400 group-hover/row:text-silver-200 transition-colors">{avg.ftPct}%</td>
                           </>
                         ) : (
-                          <td colSpan={9} className="px-3 py-3 text-right text-silver-700 italic">No games played</td>
+                          <td colSpan={9} className="px-4 py-4 text-right text-silver-700 italic group-hover/row:text-silver-500 transition-colors">No games played</td>
                         )}
                       </tr>
                     ))}

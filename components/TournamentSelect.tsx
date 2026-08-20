@@ -22,19 +22,24 @@ export default function TournamentSelect({
   }
 
   return (
-    <div className="flex items-center gap-3">
-      <p className="text-sm font-mono text-silver-500 uppercase tracking-widest shrink-0">Select Tournament:</p>
-      <select
-        value={activeId}
-        onChange={handleChange}
-        className="bg-[#111] border border-surface-700 rounded px-3 py-1.5 text-silver-200 text-xs font-mono uppercase tracking-widest focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition-colors"
-      >
-        {tournaments.map((t) => (
-          <option key={t.id} value={t.id}>
-            {t.name}
-          </option>
-        ))}
-      </select>
+    <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-surface-900/40 backdrop-blur-sm p-4 rounded-xl border border-surface-700/50 shadow-lg w-full sm:w-auto">
+      <p className="text-sm font-mono text-gold uppercase tracking-widest shrink-0 font-bold drop-shadow-sm">Select Tournament:</p>
+      <div className="relative w-full sm:w-64">
+        <select
+          value={activeId}
+          onChange={handleChange}
+          className="w-full appearance-none bg-surface-950/80 border border-surface-600 rounded-lg px-4 py-2.5 pr-10 text-white text-xs font-mono uppercase tracking-widest focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all shadow-inner hover:border-surface-500 cursor-pointer"
+        >
+          {tournaments.map((t) => (
+            <option key={t.id} value={t.id} className="bg-surface-900 text-white">
+              {t.name}
+            </option>
+          ))}
+        </select>
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-silver-400">
+          ▼
+        </div>
+      </div>
     </div>
   );
 }

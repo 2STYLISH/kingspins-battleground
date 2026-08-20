@@ -131,24 +131,27 @@ function MatchCard({ matchup, onClick }: { matchup: Matchup; onClick?: (m: Match
 
   const innerContent = (
     <>
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.02),transparent_70%)] pointer-events-none"></div>
       <TeamRow name={matchup.team_a?.name} isWinner={isComplete && matchup.winner_id === matchup.team_a?.id} isByePlaceholder={matchup.is_bye && !matchup.team_a} placeholderText={matchup.sourceA} />
-      <div className="border-t border-surface-700 my-1" />
+      <div className="border-t border-surface-700/50 my-2 relative z-10" />
       <TeamRow name={matchup.team_b?.name} isWinner={isComplete && matchup.winner_id === matchup.team_b?.id} isByePlaceholder={matchup.is_bye && !matchup.team_b} placeholderText={matchup.sourceB} />
-      <p className="text-[10px] font-mono uppercase text-silver-500 mt-2">
+      <p className={`text-[9px] font-mono font-bold uppercase tracking-widest mt-3 relative z-10 ${
+        matchup.is_bye ? 'text-silver-500' : isComplete ? 'text-emerald-500' : matchup.status === 'SCHEDULED' ? 'text-silver-400' : matchup.team_a && matchup.team_b ? 'text-gold' : 'text-silver-600'
+      }`}>
         {matchup.is_bye ? 'BYE' : isComplete ? 'FINAL' : matchup.status === 'SCHEDULED' ? 'SCHEDULED' : matchup.team_a && matchup.team_b ? 'VS' : 'TBD'}
       </p>
     </>
   );
 
   return (
-    <div className="relative">
-      <div className="absolute -left-6 top-1/2 -translate-y-1/2 text-[10px] font-mono text-silver-300 font-bold">{matchup.matchNumber}</div>
+    <div className="relative group/bracketcard">
+      <div className="absolute -left-6 top-1/2 -translate-y-1/2 text-[10px] font-mono text-silver-500 font-bold drop-shadow-sm group-hover/bracketcard:text-gold transition-colors">{matchup.matchNumber}</div>
       {onClick ? (
-        <button onClick={() => onClick(matchup)} className="w-full text-left border border-surface-700 bg-[#080808]/90 backdrop-blur-sm p-3 block hover:border-gold transition-colors rounded shadow-lg cursor-pointer">
+        <button onClick={() => onClick(matchup)} className="w-full text-left relative border border-surface-600 bg-surface-950/80 backdrop-blur-md p-4 block hover:border-gold/50 hover:shadow-[0_0_20px_rgba(255,215,0,0.15)] transition-all rounded-xl shadow-2xl cursor-pointer overflow-hidden">
           {innerContent}
         </button>
       ) : (
-        <a href={href} className="border border-surface-700 bg-[#080808]/90 backdrop-blur-sm p-3 block hover:border-emerald-600 transition-colors rounded shadow-lg">
+        <a href={href} className="w-full text-left relative border border-surface-600 bg-surface-950/80 backdrop-blur-md p-4 block hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all rounded-xl shadow-2xl overflow-hidden">
           {innerContent}
         </a>
       )}
@@ -158,10 +161,10 @@ function MatchCard({ matchup, onClick }: { matchup: Matchup; onClick?: (m: Match
 
 function TeamRow({ name, isWinner, isByePlaceholder, placeholderText }: { name?: string; isWinner: boolean; isByePlaceholder?: boolean; placeholderText?: string }) {
   if (isByePlaceholder) {
-    return <p className="text-sm text-silver-600 italic">BYE</p>;
+    return <p className="text-sm font-display tracking-widest text-silver-500 italic uppercase">BYE</p>;
   }
   return (
-    <p className={`text-sm truncate ${isWinner ? 'text-emerald-500 font-semibold drop-shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'text-white'} ${!name ? 'text-silver-600 italic text-[13px]' : ''}`}>
+    <p className={`text-sm font-display tracking-widest uppercase truncate relative z-10 ${isWinner ? 'text-emerald-400 font-bold drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'text-white'} ${!name ? 'text-silver-500 italic text-[12px]' : ''}`}>
       {name ?? placeholderText ?? 'TBD'}
     </p>
   );

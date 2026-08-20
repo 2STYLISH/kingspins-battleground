@@ -131,21 +131,21 @@ export default async function AdminStatsPage({ searchParams }: { searchParams: {
               </Link>
             </div>
 
-            <div className="card overflow-hidden">
+            <div className="relative rounded-2xl overflow-hidden bg-surface-950/80 backdrop-blur-md border border-surface-700/50 shadow-2xl transition-all">
               <div className="overflow-x-auto">
                 <table className="w-full text-xs stat-mono">
                   <thead>
-                    <tr className="border-b border-surface-700 text-silver-600 uppercase tracking-wider">
-                      <th className="text-left px-5 py-3 font-mono">Player</th>
-                      <th className="px-3 py-3 text-right">GP</th>
-                      <th className="px-3 py-3 text-right">PPG</th>
-                      <th className="px-3 py-3 text-right">RPG</th>
-                      <th className="px-3 py-3 text-right">APG</th>
-                      <th className="px-3 py-3 text-right">SPG</th>
-                      <th className="px-3 py-3 text-right">BPG</th>
-                      <th className="px-3 py-3 text-right">FG%</th>
-                      <th className="px-3 py-3 text-right">3P%</th>
-                      <th className="px-3 py-3 text-right">Status</th>
+                    <tr className="bg-surface-900/40 border-b border-surface-800/80 text-silver-500 uppercase tracking-widest text-[9px]">
+                      <th className="text-left px-6 py-4 font-bold">Player</th>
+                      <th className="px-4 py-4 text-right">GP</th>
+                      <th className="px-4 py-4 text-right">PPG</th>
+                      <th className="px-4 py-4 text-right">RPG</th>
+                      <th className="px-4 py-4 text-right">APG</th>
+                      <th className="px-4 py-4 text-right">SPG</th>
+                      <th className="px-4 py-4 text-right">BPG</th>
+                      <th className="px-4 py-4 text-right">FG%</th>
+                      <th className="px-4 py-4 text-right">3P%</th>
+                      <th className="px-4 py-4 text-right">Status</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -161,26 +161,26 @@ export default async function AdminStatsPage({ searchParams }: { searchParams: {
                       if (!avg) return null;
                       const isPending = !verifiedAvg && !!pendingAvg;
                       return (
-                        <tr key={player.id} className={`border-b border-surface-800 last:border-0 hover:bg-surface-800/50 transition-colors ${isPending ? 'opacity-60' : ''}`}>
-                          <td className="px-5 py-3">
-                            <span className="text-silver-200 font-body">{player.gamertag}</span>
+                        <tr key={player.id} className={`border-b border-surface-800 last:border-b-0 hover:bg-surface-800/50 transition-colors group/row ${isPending ? 'opacity-60' : ''}`}>
+                          <td className="px-6 py-4">
+                            <span className="text-silver-200 font-body group-hover/row:text-white transition-colors">{player.gamertag}</span>
                             {player.position && (
-                              <span className="ml-2 text-[10px] text-silver-600 uppercase">{player.position}</span>
+                              <span className="ml-3 px-1.5 py-0.5 bg-surface-900 border border-surface-700 rounded text-[9px] text-silver-400 uppercase">{player.position}</span>
                             )}
                           </td>
-                          <td className="px-3 py-3 text-right text-silver-400">{avg.gamesPlayed}</td>
-                          <td className="px-3 py-3 text-right text-white font-semibold">{avg.ppg}</td>
-                          <td className="px-3 py-3 text-right text-silver-300">{avg.rpg}</td>
-                          <td className="px-3 py-3 text-right text-silver-300">{avg.apg}</td>
-                          <td className="px-3 py-3 text-right text-silver-300">{avg.spg}</td>
-                          <td className="px-3 py-3 text-right text-silver-300">{avg.bpg}</td>
-                          <td className="px-3 py-3 text-right text-silver-400">{avg.fgPct}%</td>
-                          <td className="px-3 py-3 text-right text-silver-400">{avg.tpPct}%</td>
-                          <td className="px-3 py-3 text-right">
-                            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
+                          <td className="px-4 py-4 text-right text-silver-400">{avg.gamesPlayed}</td>
+                          <td className="px-4 py-4 text-right text-white font-bold">{avg.ppg}</td>
+                          <td className="px-4 py-4 text-right text-silver-300">{avg.rpg}</td>
+                          <td className="px-4 py-4 text-right text-silver-300">{avg.apg}</td>
+                          <td className="px-4 py-4 text-right text-silver-300">{avg.spg}</td>
+                          <td className="px-4 py-4 text-right text-silver-300">{avg.bpg}</td>
+                          <td className="px-4 py-4 text-right text-silver-400">{avg.fgPct}%</td>
+                          <td className="px-4 py-4 text-right text-silver-400">{avg.tpPct}%</td>
+                          <td className="px-4 py-4 text-right">
+                            <span className={`text-[9px] font-mono font-bold px-2 py-1 rounded-full border ${
                               isPending
-                                ? 'text-silver-600 bg-surface-700'
-                                : 'text-silver-300 bg-surface-700'
+                                ? 'text-silver-400 bg-surface-800 border-surface-600'
+                                : 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.1)]'
                             }`}>
                               {isPending ? 'PENDING' : 'VERIFIED'}
                             </span>

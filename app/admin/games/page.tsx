@@ -56,18 +56,19 @@ export default async function AdminGamesPage() {
             <Link
               key={s.id}
               href={`/admin/games/${s.id}`}
-              className="card-hover p-5 flex items-center justify-between"
+              className="relative group p-5 rounded-2xl border border-surface-700/50 bg-gradient-to-br from-surface-900/80 to-surface-950/80 backdrop-blur-xl shadow-lg hover:shadow-[0_0_25px_rgba(220,38,38,0.15)] hover:border-red-500/40 transition-all duration-300 overflow-hidden flex items-center justify-between"
             >
-              <div>
-                <p className="text-[10px] font-mono text-silver-600 uppercase tracking-widest">
+              <div className="absolute top-0 left-0 w-full h-full bg-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+              <div className="relative z-10">
+                <p className="text-[10px] font-mono text-silver-500 uppercase tracking-widest group-hover:text-silver-400 transition-colors">
                   {s.game_type}
                   {s.round_label ? ` · ${s.round_label}` : ''} · {formatDate(s.scheduled_date)} {formatTime(s.scheduled_time)}
                 </p>
-                <p className="text-white font-display text-lg mt-1">
+                <p className="text-white font-display text-lg mt-1 group-hover:text-red-400 transition-colors">
                   {s.home?.name ?? 'TBD'} <span className="text-silver-600">vs</span> {s.away?.name ?? 'TBD'}
                 </p>
               </div>
-              <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded ${statusStyle}`}>
+              <span className={`relative z-10 text-[10px] font-mono uppercase px-3 py-1 rounded-full border border-surface-600/50 shadow-sm ${statusStyle}`}>
                 {gameStatus.replace(/_/g, ' ')}
               </span>
             </Link>

@@ -324,21 +324,21 @@ function StatTable({
 }) {
   return (
     <div>
-      <div className="flex items-center gap-3 mb-3 pb-2 border-b border-surface-700">
-        <p className="text-xs font-mono text-silver-400 uppercase tracking-widest flex-1">{teamName}</p>
-        <span className="text-[10px] font-mono text-silver-600 uppercase tracking-widest">
-          {activePlayers} playing · {rows.length - activePlayers} DNP
+      <div className="flex items-center justify-between mb-4 pb-3 border-b border-surface-700">
+        <p className="text-sm font-display text-white uppercase tracking-widest">{teamName}</p>
+        <span className="text-[10px] font-mono bg-surface-800 border border-surface-700 text-silver-400 px-2 py-1 rounded uppercase tracking-widest">
+          {activePlayers} PLAYING · {rows.length - activePlayers} DNP
         </span>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-xs stat-mono min-w-[820px]">
+      <div className="overflow-x-auto rounded-lg border border-surface-700 bg-surface-950 shadow-inner">
+        <table className="w-full text-xs stat-mono min-w-[900px] border-collapse">
           <thead>
-            <tr className="text-silver-600 uppercase border-b border-surface-700">
-              <th className="text-left py-2 pr-3 font-mono tracking-widest w-36">Player</th>
-              <th className="px-2 py-2 text-center w-16 text-silver-500">Pos</th>
-              <th className="px-2 py-2 text-center w-16 text-silver-500">Status</th>
+            <tr className="bg-surface-900 border-b border-surface-700 text-silver-400 uppercase tracking-widest text-[9px]">
+              <th className="text-left px-3 py-3 font-mono font-bold w-40 border-r border-surface-800">Player</th>
+              <th className="px-2 py-3 text-center w-16 border-r border-surface-800">Pos</th>
+              <th className="px-2 py-3 text-center w-20 border-r border-surface-800">Status</th>
               {FIELDS.map((f) => (
-                <th key={f} className="px-1 py-2 text-right tracking-wider">
+                <th key={f} className="px-2 py-3 text-right tracking-wider border-r border-surface-800 last:border-r-0">
                   {FIELD_LABELS[f]}
                 </th>
               ))}
@@ -348,20 +348,17 @@ function StatTable({
             {rows.map((r) => (
               <tr
                 key={r.playerId}
-                className={`border-b border-surface-800 transition-colors ${r.didNotPlay
-                    ? 'opacity-40'
-                    : 'hover:bg-surface-800/50'
-                  }`}
+                className={`border-b border-surface-800 last:border-b-0 transition-colors focus-within:bg-surface-800/80 hover:bg-surface-800/50 ${r.didNotPlay ? 'opacity-50 grayscale' : ''}`}
               >
-                <td className="py-2 pr-3 text-silver-300 font-body whitespace-nowrap">
+                <td className="px-3 py-2 text-silver-200 font-body whitespace-nowrap border-r border-surface-800 bg-surface-900/20">
                   {r.gamertag}
                 </td>
-                <td className="px-2 py-1 text-center">
+                <td className="p-0 border-r border-surface-800 text-center relative group">
                   <select
                     value={r.position}
                     disabled={r.didNotPlay}
                     onChange={(e) => onChange(r.playerId, 'position', e.target.value)}
-                    className="w-12 bg-surface-900 border border-surface-600 rounded px-0.5 py-0.5 text-silver-200 focus:outline-none focus:ring-1 focus:ring-silver-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="w-full h-full bg-transparent px-1 py-3 text-silver-300 text-center focus:outline-none focus:bg-surface-700 cursor-pointer appearance-none disabled:cursor-not-allowed group-hover:bg-surface-800/50 transition-colors"
                   >
                     <option value="">-</option>
                     <option value="PG">PG</option>
@@ -371,26 +368,26 @@ function StatTable({
                     <option value="C">C</option>
                   </select>
                 </td>
-                {/* DNP toggle */}
-                <td className="px-2 py-1 text-center">
+                <td className="p-0 border-r border-surface-800 text-center">
                   <button
                     onClick={() => onToggleDNP(r.playerId)}
-                    className={`text-[10px] font-mono px-2 py-0.5 rounded border transition-colors ${r.didNotPlay
-                        ? 'border-surface-500 text-silver-600 bg-surface-800'
-                        : 'border-surface-600 text-silver-400 hover:border-white hover:text-white'
+                    className={`w-full h-full px-2 py-3 text-[9px] font-mono font-bold tracking-widest uppercase transition-colors focus:outline-none ${r.didNotPlay
+                        ? 'text-red-500 hover:bg-red-500/10'
+                        : 'text-emerald-500 hover:bg-emerald-500/10'
                       }`}
                   >
-                    {r.didNotPlay ? 'DNP' : 'PLAYED'}
+                    {r.didNotPlay ? 'DNP' : 'ACTIVE'}
                   </button>
                 </td>
                 {FIELDS.map((f) => (
-                  <td key={f} className="px-1 py-1">
+                  <td key={f} className="p-0 border-r border-surface-800 last:border-r-0">
                     <input
                       type="number"
                       value={r[f] as number | ''}
                       disabled={r.didNotPlay}
                       onChange={(e) => onChange(r.playerId, f, e.target.value === '' ? '' : Number(e.target.value))}
-                      className="w-12 bg-surface-900 border border-surface-600 rounded px-1 py-0.5 text-right text-silver-200 focus:outline-none focus:ring-1 focus:ring-silver-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="w-full h-full bg-transparent px-3 py-3 text-right text-silver-100 font-bold focus:outline-none focus:bg-surface-700 focus:text-white transition-colors disabled:cursor-not-allowed placeholder-surface-700"
+                      placeholder="0"
                     />
                   </td>
                 ))}

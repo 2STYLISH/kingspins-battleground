@@ -69,15 +69,15 @@ export default async function SchedulePage({ searchParams }: { searchParams: { f
         <h1 className="text-5xl text-white font-display tracking-widest uppercase drop-shadow-[0_0_15px_rgba(229,0,0,0.3)]">UPCOMING GAMES</h1>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-8">
+      <div className="inline-flex flex-wrap gap-2 md:gap-0 bg-surface-900/60 backdrop-blur-md p-1.5 rounded-xl border border-surface-700/50 shadow-inner mb-10">
         {filters.map((f) => (
           <a
             key={f.key}
             href={`/schedule?filter=${f.key}`}
-            className={`px-4 py-2 rounded text-[10px] font-mono uppercase tracking-widest border transition-colors ${
+            className={`px-6 py-2.5 rounded-lg text-xs font-mono uppercase tracking-widest transition-all duration-300 border ${
               filter === f.key 
-                ? 'border-[#b8860b] bg-[#b8860b]/10 text-[#b8860b]' 
-                : 'border-surface-700 bg-[#111] text-silver-400 hover:text-red-600 hover:border-red-600'
+                ? 'bg-gradient-to-r from-red-600 to-red-500 text-white shadow-[0_0_15px_rgba(220,38,38,0.5)] border-red-500/50' 
+                : 'border-transparent text-silver-400 hover:text-white hover:bg-surface-800'
             }`}
           >
             {f.label}
