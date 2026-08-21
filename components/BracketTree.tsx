@@ -170,11 +170,6 @@ function MatchCard({ matchup, onClick, defaultMatchFormat }: { matchup: Matchup;
       <TeamRow name={matchup.team_a?.name} score={scoreA} isWinner={isComplete && matchup.winner_id === matchup.team_a?.id} isByePlaceholder={matchup.is_bye && !matchup.team_a} placeholderText={matchup.sourceA} />
       
       <div className="flex items-center gap-2 my-2 relative z-10">
-        {boFormat && (
-          <div className="text-[8px] font-mono font-bold bg-surface-800 text-silver-400 px-1.5 py-0.5 rounded shadow-sm border border-surface-700 uppercase">
-            {boFormat === 'TWICE_TO_BEAT' ? '2x TO BEAT' : boFormat}
-          </div>
-        )}
         <div className="flex-1 border-t border-surface-700/50" />
         <p className={`text-[9px] font-mono font-bold uppercase tracking-widest ${
           matchup.is_bye ? 'text-silver-500' : isComplete ? 'text-emerald-500' : matchup.status === 'SCHEDULED' ? 'text-silver-400' : matchup.team_a && matchup.team_b ? 'text-gold' : 'text-silver-600'
@@ -182,6 +177,11 @@ function MatchCard({ matchup, onClick, defaultMatchFormat }: { matchup: Matchup;
           {matchup.is_bye ? 'BYE' : isComplete ? 'FINAL' : matchup.status === 'SCHEDULED' ? 'SCHEDULED' : matchup.team_a && matchup.team_b ? 'VS' : 'TBD'}
         </p>
         <div className="flex-1 border-t border-surface-700/50" />
+        {boFormat && (
+          <div className="text-[8px] font-mono font-bold bg-surface-800 text-silver-400 px-1.5 py-0.5 rounded shadow-sm border border-surface-700 uppercase">
+            {boFormat === 'TWICE_TO_BEAT' ? '2x TO BEAT' : boFormat}
+          </div>
+        )}
       </div>
       
       <TeamRow name={matchup.team_b?.name} score={scoreB} isWinner={isComplete && matchup.winner_id === matchup.team_b?.id} isByePlaceholder={matchup.is_bye && !matchup.team_b} placeholderText={matchup.sourceB} />
