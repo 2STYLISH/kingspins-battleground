@@ -52,6 +52,12 @@ export async function ensureScheduleForMatchup(
       .single();
     if (seriesError) throw seriesError;
     series = newSeries;
+  } else {
+    // Ensure the series teams are synced with the matchup in case of an override
+    await supabase.from('series').update({
+      team_a_id: matchup.team_a_id,
+      team_b_id: matchup.team_b_id,
+    }).eq('id', series.id);
   }
 
   // Removed auto-scheduling as requested by admins.

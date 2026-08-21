@@ -21,7 +21,7 @@ export async function createScheduledGame(input: {
   // Find if there is an active bracket matchup for these two teams
   const { data: matchup } = await supabase
     .from('bracket_matchups')
-    .select('id, schedule_id, match_format, tournaments(match_format)')
+    .select('id, schedule_id, match_format, team_a_id, team_b_id, tournaments(match_format)')
     .neq('status', 'COMPLETED')
     .or(`and(team_a_id.eq.${input.homeTeamId},team_b_id.eq.${input.awayTeamId}),and(team_a_id.eq.${input.awayTeamId},team_b_id.eq.${input.homeTeamId})`)
     .maybeSingle();
@@ -49,8 +49,8 @@ export async function createScheduledGame(input: {
   if (!series && matchFormat !== 'BO1') {
     const { data: newSeries, error: seriesError } = await supabase.from('series').insert({
       bracket_matchup_id: matchup ? matchup.id : null,
-      team_a_id: input.homeTeamId,
-      team_b_id: input.awayTeamId,
+      team_a_id: matchup && matchup.team_a_id ? matchup.team_a_id : input.homeTeamId,
+      team_b_id: matchup && matchup.team_b_id ? matchup.team_b_id : input.awayTeamId,
       match_format: matchFormat,
       status: 'IN_PROGRESS',
     }).select('id, match_format').single();

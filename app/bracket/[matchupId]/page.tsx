@@ -18,7 +18,7 @@ export default async function MatchupDetailPage({ params }: { params: { matchupI
 
   const { data: series } = await supabase
     .from('series')
-    .select('id, match_format, team_a_wins, team_b_wins, status, winner_id')
+    .select('id, match_format, team_a_id, team_b_id, team_a_wins, team_b_wins, status, winner_id')
     .eq('bracket_matchup_id', params.matchupId)
     .maybeSingle();
 
@@ -45,6 +45,15 @@ export default async function MatchupDetailPage({ params }: { params: { matchupI
   const teamA = matchup.team_a as any;
   const teamB = matchup.team_b as any;
 
+  let scoreA = series?.team_a_wins;
+  let scoreB = series?.team_b_wins;
+  if (series && teamA) {
+    if (series.team_b_id === teamA.id) {
+      scoreA = series.team_b_wins;
+      scoreB = series.team_a_wins;
+    }
+  }
+
   return (
     <div className="space-y-6">
       <BackButton />
@@ -67,9 +76,9 @@ export default async function MatchupDetailPage({ params }: { params: { matchupI
           <div className="card p-5">
             <p className="text-sm text-mute uppercase font-mono">{series.match_format}</p>
             <p className="text-2xl text-bone font-display mt-1">
-              {teamA.name} <span className="text-gold">{series.team_a_wins}</span>
+              {teamA.name} <span className="text-gold">{scoreA}</span>
               <span className="text-mute mx-2">—</span>
-              <span className="text-gold">{series.team_b_wins}</span> {teamB.name}
+              <span className="text-gold">{scoreB}</span> {teamB.name}
             </p>
             {series.status === 'COMPLETED' && (
               <p className="text-xs text-crimson-400 uppercase font-mono mt-2">

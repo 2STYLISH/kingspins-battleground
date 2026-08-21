@@ -136,15 +136,23 @@ function MatchCard({ matchup, onClick, defaultMatchFormat }: { matchup: Matchup;
   const boFormat = matchup.match_format || defaultMatchFormat;
 
   // Compute Scores
-  let scoreA = null;
-  let scoreB = null;
-  
+  let scoreA: number | undefined;
+  let scoreB: number | undefined;
+
   if ((matchup as any).series && (matchup as any).series.length > 0) {
     // It's a series (BO3, BO5, etc.)
     const s = (matchup as any).series[0];
     if (s.team_a_wins > 0 || s.team_b_wins > 0 || matchup.status === 'IN_PROGRESS' || matchup.status === 'COMPLETED') {
-      scoreA = s.team_a_wins;
-      scoreB = s.team_b_wins;
+      if (s.team_a_id && matchup.team_a && s.team_a_id === matchup.team_a.id) {
+        scoreA = s.team_a_wins;
+        scoreB = s.team_b_wins;
+      } else if (s.team_b_id && matchup.team_a && s.team_b_id === matchup.team_a.id) {
+        scoreA = s.team_b_wins;
+        scoreB = s.team_a_wins;
+      } else {
+        scoreA = s.team_a_wins;
+        scoreB = s.team_b_wins;
+      }
     }
   } else if (matchup.schedule) {
     // It's a BO1
