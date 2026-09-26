@@ -320,6 +320,76 @@ export async function generateBracket(tournamentId: string, numTeams: number) {
     .update({ feeds_into_matchup_id: gfId })
     .eq('id', lbIds[lbRoundCount - 1][0]);
 
+  // ── Pre-calculate Byes for Visual Accuracy ────────────────────────────────
+  // This ensures the empty bracket visually represents the correct number of 
+  // teams before randomization.
+  if (numTeams < bracketSize) {
+    const { data: round1 } = await supabase
+      .from('bracket_matchups')
+      .select('id, feeds_into_matchup_id, loser_feeds_into_matchup_id')
+      .eq('tournament_id', tournamentId)
+      .eq('bracket_side', 'WINNERS')
+      .eq('round', 1)
+      .order('slot', { ascending: true });
+
+    if (round1 && round1.length > 0) {
+      // Inline generation of seed order to find where the byes go
+      let matches = [1, 2];
+      for (let r = 1; r < ubRounds; r++) {
+        let nextMatches = [];
+        let sum = Math.pow(2, r + 1) + 1;
+        for (let i = 0; i < matches.length; i++) {
+          nextMatches.push(matches[i]);
+          nextMatches.push(sum - matches[i]);
+        }
+        matches = nextMatches;
+      }
+      const seedOrder = matches;
+      const byeMatchupIds = new Set<string>();
+
+      for (let i = 0; i < round1.length; i++) {
+        const matchup = round1[i];
+        const seedA = seedOrder[i * 2];
+        const seedB = seedOrder[i * 2 + 1];
+        
+        if (seedA > numTeams || seedB > numTeams) {
+          await supabase.from('bracket_matchups').update({ is_bye: true, status: 'COMPLETED' }).eq('id', matchup.id);
+          byeMatchupIds.add(matchup.id);
+          if (matchup.loser_feeds_into_matchup_id) {
+             await supabase.from('bracket_matchups').update({ is_bye: true, status: 'COMPLETED' }).eq('id', matchup.loser_feeds_into_matchup_id);
+             byeMatchupIds.add(matchup.loser_feeds_into_matchup_id);
+          }
+        }
+      }
+
+      if (byeMatchupIds.size > 0 && isDoubleElim) {
+        const { data: allMatchups } = await supabase
+          .from('bracket_matchups')
+          .select('id, feeds_into_matchup_id, loser_feeds_into_matchup_id, bracket_side')
+          .eq('tournament_id', tournamentId);
+
+        if (allMatchups) {
+          let changed = true;
+          while (changed) {
+            changed = false;
+            for (const m of allMatchups) {
+              if (byeMatchupIds.has(m.id)) continue;
+              const incomers = allMatchups.filter(
+                x => x.feeds_into_matchup_id === m.id || x.loser_feeds_into_matchup_id === m.id
+              );
+              const byeIncomers = incomers.filter(x => byeMatchupIds.has(x.id));
+              if (incomers.length > 0 && byeIncomers.length === incomers.length && m.bracket_side === 'LOSERS') {
+                byeMatchupIds.add(m.id);
+                await supabase.from('bracket_matchups').update({ is_bye: true, status: 'COMPLETED' }).eq('id', m.id);
+                changed = true;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   await supabase.from('tournaments').update({ status: 'SEEDING' }).eq('id', tournamentId);
   revalidatePath('/admin/bracket');
   revalidatePath('/bracket');
@@ -832,6 +902,9 @@ export async function randomizeBracket(tournamentId: string, options?: { randomi
       }
     }
   }
+
+  // Final step: compress the bracket visually by deleting ghosts
+  await collapseGhostNodes(supabase, tournamentId);
 
   await supabase.from('tournaments').update({ status: 'IN_PROGRESS' }).eq('id', tournamentId);
 
