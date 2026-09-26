@@ -44,14 +44,17 @@ export default function BracketTree({
     return a.slot - b.slot;
   });
 
-  sortedMatchups.forEach((m, idx) => {
-    m.matchNumber = idx + 1;
+  let matchCounter = 0;
+  sortedMatchups.forEach((m) => {
+    if (!m.is_bye) {
+      m.matchNumber = ++matchCounter;
+    }
   });
 
   // Calculate sources for TBD slots
   sortedMatchups.forEach((m) => {
     const upstreams = sortedMatchups.filter(
-      up => up.feeds_into_matchup_id === m.id || up.loser_feeds_into_matchup_id === m.id
+      up => !up.is_bye && (up.feeds_into_matchup_id === m.id || up.loser_feeds_into_matchup_id === m.id)
     ).sort((a, b) => (a.matchNumber || 0) - (b.matchNumber || 0));
 
     if (upstreams.length > 0) {
